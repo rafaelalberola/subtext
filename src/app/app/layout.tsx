@@ -2,6 +2,8 @@ import BottomNav from '@/components/BottomNav'
 import { ToastProvider } from '@/components/ui/Toast'
 import I18nProvider from '@/components/I18nProvider'
 
+export const dynamic = 'force-dynamic'
+
 export default function AppLayout({
   children,
 }: {
