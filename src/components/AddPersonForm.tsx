@@ -1,0 +1,74 @@
+'use client'
+
+import { useState } from 'react'
+import BottomSheet from '@/components/ui/BottomSheet'
+import Button from '@/components/ui/Button'
+import { useI18n } from '@/lib/i18n'
+
+const EMOJI_OPTIONS = ['👤', '😊', '😎', '🥰', '🤔', '😈', '👩', '👨', '🧑', '💼', '❤️', '⭐']
+
+interface AddPersonFormProps {
+  open: boolean
+  onClose: () => void
+  onSave: (name: string, emoji: string) => void
+}
+
+export default function AddPersonForm({ open, onClose, onSave }: AddPersonFormProps) {
+  const [name, setName] = useState('')
+  const [emoji, setEmoji] = useState('👤')
+  const { t } = useI18n()
+
+  const handleSubmit = () => {
+    if (!name.trim()) return
+    onSave(name.trim(), emoji)
+    setName('')
+    setEmoji('👤')
+  }
+
+  const handleClose = () => {
+    setName('')
+    setEmoji('👤')
+    onClose()
+  }
+
+  return (
+    <BottomSheet open={open} onClose={handleClose} title={t('add_person_title')}>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-caption text-text-secondary mb-2">{t('choose_emoji')}</label>
+          <div className="flex flex-wrap gap-2">
+            {EMOJI_OPTIONS.map((e) => (
+              <button
+                key={e}
+                onClick={() => setEmoji(e)}
+                className={`w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all
+                  ${emoji === e ? 'bg-accent/10 ring-2 ring-accent' : 'bg-bg-secondary hover:bg-border'}`}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-caption text-text-secondary mb-2">{t('person_name')}</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('person_name_placeholder')}
+            className="w-full px-4 py-3 rounded-button bg-bg-secondary text-body text-text-primary border-2 border-transparent focus:border-accent focus:bg-white focus:outline-none transition-all"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && name.trim()) handleSubmit()
+            }}
+          />
+        </div>
+
+        <Button variant="primary" fullWidth onClick={handleSubmit} disabled={!name.trim()}>
+          {t('add_person')}
+        </Button>
+      </div>
+    </BottomSheet>
+  )
+}

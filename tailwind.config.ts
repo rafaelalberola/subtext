@@ -1,0 +1,130 @@
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        'bg-primary': '#FFFFFF',
+        'bg-secondary': '#F5F5F5',
+        'bg-surface': '#FFFFFF',
+        'text-primary': '#0D0D0D',
+        'text-secondary': '#666666',
+        'text-tertiary': '#999999',
+        accent: '#0D0D0D',
+        'accent-hover': '#333333',
+        success: '#00A699',
+        border: '#E8E8E8',
+        danger: '#EF4444',
+        'danger-hover': '#DC2626',
+        'danger-bg': '#FEF2F2',
+        'danger-text': '#991B1B',
+        warning: '#F59E0B',
+        'warning-bg': '#FFFBEB',
+        'warning-text': '#92400E',
+        'success-bg': '#ECFDF5',
+        'success-text': '#065F46',
+        info: '#3B82F6',
+        'info-bg': '#EFF6FF',
+        'info-text': '#1E40AF',
+        'wa-green-dark': '#075E54',
+        'wa-green-light': '#25D366',
+        'wa-bubble-out': '#DCF8C6',
+        'wa-bubble-in': '#FFFFFF',
+        'wa-bg': '#ECE5DD',
+        'wa-time': '#667781',
+        'wa-check': '#53BDEB',
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-serif)', 'ui-serif', 'Georgia', 'Cambria', '"Times New Roman"', 'serif'],
+      },
+      fontSize: {
+        'display': ['32px', { lineHeight: '1.15', fontWeight: '400', letterSpacing: '-0.01em' }],
+        'display-sm': ['26px', { lineHeight: '1.2', fontWeight: '400', letterSpacing: '-0.01em' }],
+        hero: ['28px', { lineHeight: '1.2', fontWeight: '400', letterSpacing: '-0.02em' }],
+        title: ['22px', { lineHeight: '1.3', fontWeight: '600', letterSpacing: '-0.01em' }],
+        subtitle: ['17px', { lineHeight: '1.4', fontWeight: '500' }],
+        body: ['15px', { lineHeight: '1.6', fontWeight: '400' }],
+        caption: ['13px', { lineHeight: '1.4', fontWeight: '400' }],
+      },
+      boxShadow: {
+        none: 'none',
+        sm: '0 1px 2px rgba(0,0,0,0.03)',
+        md: '0 2px 8px rgba(0,0,0,0.04)',
+        lg: '0 4px 16px rgba(0,0,0,0.06)',
+        xl: '0 8px 24px rgba(0,0,0,0.08)',
+        dialog: '0 8px 32px rgba(0,0,0,0.10)',
+      },
+      borderRadius: {
+        card: '16px',
+        button: '12px',
+        input: '24px',
+        dialog: '20px',
+        pill: '9999px',
+      },
+      spacing: {
+        'section': '24px',
+        'card-gap': '20px',
+        'section-gap': '40px',
+        'list-gap': '10px',
+      },
+      keyframes: {
+        'fade-in-up': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'slide-up': {
+          '0%': { transform: 'translateY(100%)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        'toast-in': {
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'reveal-in': {
+          '0%': { opacity: '0', transform: 'translateY(4px)', filter: 'blur(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)', filter: 'blur(0)' },
+        },
+        'backdrop-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'dialog-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95) translateY(10px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+        'action-menu-in': {
+          '0%': { opacity: '0', transform: 'scale(0.9)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+      },
+      animation: {
+        'fade-in-up': 'fade-in-up 200ms ease-out forwards',
+        shimmer: 'shimmer 1.5s ease-in-out infinite',
+        'fade-in': 'fade-in 200ms ease-out forwards',
+        'slide-up': 'slide-up 300ms ease-out forwards',
+        'toast-in': 'toast-in 200ms ease-out forwards',
+        'reveal-in': 'reveal-in 400ms ease-out forwards',
+        'backdrop-in': 'backdrop-in 200ms ease-out forwards',
+        'dialog-in': 'dialog-in 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'action-menu-in': 'action-menu-in 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+      },
+    },
+  },
+  plugins: [],
+}
+
+export default config
