@@ -160,7 +160,7 @@ export default function PlatformCard({ platform, animationDelay = 0 }: PlatformC
 
         {/* Tone suggestions */}
         <div
-          className="bubble-glass rounded-card px-3.5 py-2.5 flex flex-col gap-2 opacity-0 animate-reveal-in"
+          className="bubble-glass rounded-card px-3.5 py-2.5 ml-2 flex flex-col gap-2 opacity-0 animate-reveal-in"
           style={{ animationDelay: `${animationDelay + 900}ms`, animationFillMode: 'forwards' }}
         >
           <span className="text-[11px] text-accent font-semibold uppercase tracking-wider">

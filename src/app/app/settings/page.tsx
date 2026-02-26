@@ -10,6 +10,7 @@ import PlanBadge from '@/components/PlanBadge'
 import Button from '@/components/ui/Button'
 import SectionGroup from '@/components/ui/SectionGroup'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import PageHeader from '@/components/ui/PageHeader'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
@@ -63,7 +64,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-title text-text-primary">{t('settings_title')}</h1>
+      <PageHeader title={t('settings_title')} />
 
       {/* Subscription */}
       {user && (
@@ -160,11 +161,11 @@ export default function SettingsPage() {
 
       {/* Legal */}
       <div className="flex items-center justify-center gap-3 text-caption text-text-tertiary pt-4">
-        <Link href="/privacy" className="hover:text-text-secondary transition-colors">
+        <Link href="/privacy" className="underline hover:text-text-secondary transition-colors">
           {t('privacy_policy_title')}
         </Link>
         <span>·</span>
-        <Link href="/terms" className="hover:text-text-secondary transition-colors">
+        <Link href="/terms" className="underline hover:text-text-secondary transition-colors">
           {t('terms_title')}
         </Link>
       </div>

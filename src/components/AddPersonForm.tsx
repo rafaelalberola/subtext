@@ -36,7 +36,7 @@ export default function AddPersonForm({ open, onClose, onSave }: AddPersonFormPr
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
           <label className="text-caption text-text-secondary">{t('choose_emoji')}</label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-[.9rem]">
             {EMOJI_OPTIONS.map((e) => (
               <button
                 key={e}

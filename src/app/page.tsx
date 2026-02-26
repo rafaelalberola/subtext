@@ -21,7 +21,7 @@ function LandingContent() {
           <span className="font-serif text-subtitle text-text-primary tracking-tight">Reveald</span>
           <Link
             href="/app"
-            className="text-caption text-accent font-medium hover:text-accent-hover transition-colors"
+            className="text-caption text-accent font-medium underline hover:text-accent-hover transition-colors"
           >
             {t('open_app')}
           </Link>
@@ -36,15 +36,12 @@ function LandingContent() {
 
         {/* Footer */}
         <footer className="pb-8 flex flex-col items-center gap-2">
-          <p className="text-caption text-text-tertiary">
-            {t('landing_footer')}
-          </p>
           <div className="flex items-center gap-3 text-caption text-text-tertiary">
-            <Link href="/privacy" className="hover:text-text-secondary transition-colors">
+            <Link href="/privacy" className="underline hover:text-text-secondary transition-colors">
               {t('privacy_policy_title')}
             </Link>
             <span>·</span>
-            <Link href="/terms" className="hover:text-text-secondary transition-colors">
+            <Link href="/terms" className="underline hover:text-text-secondary transition-colors">
               {t('terms_title')}
             </Link>
           </div>

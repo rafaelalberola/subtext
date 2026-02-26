@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, ReactNode } from 'react'
 import { I18nContext, detectLocale, translate, type Locale, type TranslationKey } from '@/lib/i18n'
 
 export default function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en')
+  const [locale, setLocaleState] = useState<Locale | null>(null)
 
   useEffect(() => {
     setLocaleState(detectLocale())
@@ -14,13 +14,18 @@ export default function I18nProvider({ children }: { children: ReactNode }) {
     setLocaleState(newLocale)
   }, [])
 
+  const resolvedLocale = locale ?? 'en'
+
   const t = useCallback(
-    (key: TranslationKey) => translate(locale, key),
-    [locale]
+    (key: TranslationKey) => translate(resolvedLocale, key),
+    [resolvedLocale]
   )
 
+  // Don't render until locale is detected to avoid language flicker
+  if (!locale) return null
+
   return (
-    <I18nContext.Provider value={{ locale, t, setLocale }}>
+    <I18nContext.Provider value={{ locale: resolvedLocale, t, setLocale }}>
       {children}
     </I18nContext.Provider>
   )

@@ -1,8 +1,9 @@
 'use client'
 
-import { ArrowLeft, Bookmark } from 'lucide-react'
+import { Bookmark } from 'lucide-react'
 import { AnalysisResult } from '@/types/analysis'
 import Card from '@/components/ui/Card'
+import PageHeader from '@/components/ui/PageHeader'
 import ConversationThread from '@/components/chat/ConversationThread'
 import EmotionalSignals from '@/components/EmotionalSignals'
 import SuggestedResponses from '@/components/SuggestedResponses'
@@ -17,6 +18,8 @@ interface AnalysisResultsProps {
   showSave?: boolean
   plan?: PlanId
   contactName?: string
+  inputText?: string
+  createdAt?: string
 }
 
 export default function AnalysisResults({
@@ -26,32 +29,40 @@ export default function AnalysisResults({
   showSave = true,
   plan = 'free',
   contactName,
+  inputText,
+  createdAt,
 }: AnalysisResultsProps) {
   const { t } = useI18n()
 
   return (
     <div className="flex flex-col gap-card-gap">
-      {/* Back button */}
-      <button
-        onClick={onBack}
-        className="flex items-center gap-2 text-body text-text-secondary hover:text-text-primary transition-colors min-h-[44px]"
-      >
-        <ArrowLeft size={18} strokeWidth={1.5} />
-        {t('back')}
-      </button>
+      <PageHeader
+        onBack={onBack}
+        title={inputText
+          ? (inputText.length > 60 ? inputText.slice(0, 60) + '...' : inputText)
+          : t('nav_analyze')
+        }
+      />
 
-      {/* Overall read */}
-      <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: '0ms', animationFillMode: 'forwards' }}>
-        <p className="text-body text-text-secondary leading-relaxed">
-          {analysis.overall_read}
-        </p>
-      </div>
+      {/* Date with separators */}
+      {createdAt && (
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-border" />
+          <p className="text-caption text-text-tertiary whitespace-nowrap">
+            {new Date(createdAt).toLocaleDateString(analysis.language === 'es' ? 'es-ES' : 'en-US', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </p>
+          <div className="flex-1 h-px bg-border" />
+        </div>
+      )}
 
       {/* Decoded conversation */}
-      <div className="opacity-0 animate-fade-in-up flex flex-col gap-3" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-        <h2 className="text-subtitle text-text-primary">
-          {t('card_decoded_title')}
-        </h2>
+      <div className="opacity-0 animate-fade-in-up flex flex-col gap-3" style={{ animationDelay: '0ms', animationFillMode: 'forwards' }}>
         <div className="rounded-card bg-[#f1efeb] p-3">
           <ConversationThread
             pairs={analysis.decoded_pairs}
@@ -62,19 +73,21 @@ export default function AnalysisResults({
         </div>
       </div>
 
+      {/* Overall read */}
+      <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+        <p className="text-body text-text-secondary leading-relaxed pl-[3px]">
+          {analysis.overall_read}
+        </p>
+      </div>
+
       {/* Card 2: Emotional signals */}
-      <Card animated delay={250} className="flex flex-col gap-4">
-        <h2 className="text-subtitle text-text-primary">
-          {t('card_signals_title')}
-        </h2>
+      <Card animated delay={250} className="flex flex-col gap-4 !p-3">
         <EmotionalSignals signals={analysis.emotional_signals} />
       </Card>
 
       {/* Card 3: Suggested responses */}
-      <Card animated delay={400} className="flex flex-col gap-4">
-        <h2 className="text-subtitle text-text-primary">
-          {t('card_responses_title')}
-        </h2>
+      <Card animated delay={400} className="flex flex-col gap-4 !p-3 !mb-0">
+        <h2 className="text-subtitle text-text-primary">{t('card_responses_title')}</h2>
         <SuggestedResponses
           responses={analysis.suggested_responses}
           lockedTones={plan === 'free'

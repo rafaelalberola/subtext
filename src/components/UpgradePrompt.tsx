@@ -58,7 +58,7 @@ export function LowUsageBanner() {
       <span className="text-text-secondary">{t('usage_last_analysis')}</span>
       <Link
         href="/app/pricing"
-        className="text-accent font-medium hover:text-accent-hover transition-colors"
+        className="text-accent font-medium underline hover:text-accent-hover transition-colors"
       >
         {t('see_plans')}
       </Link>

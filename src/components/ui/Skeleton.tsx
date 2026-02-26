@@ -23,7 +23,7 @@ export function ThinkingIndicator() {
   const { t } = useI18n()
 
   return (
-    <div className="flex flex-col items-center justify-center py-24 gap-6">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
       <div className="flex items-center gap-2">
         <span className="w-3 h-3 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '0ms' }} />
         <span className="w-3 h-3 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '160ms' }} />

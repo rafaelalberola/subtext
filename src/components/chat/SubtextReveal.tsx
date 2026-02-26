@@ -23,7 +23,7 @@ export default function SubtextReveal({
 
   return (
     <div
-      className={`bubble-glass rounded-b-lg px-3.5 py-2.5 flex flex-col gap-0.5 ${animated ? 'opacity-0 animate-reveal-in' : ''}`}
+      className={`bubble-glass rounded-b-lg px-4 py-2.5 flex flex-col gap-0.5 ${animated ? 'opacity-0 animate-reveal-in' : ''}`}
       style={animated ? { animationDelay: `${delay}ms`, animationFillMode: 'forwards' } : undefined}
     >
       <span className="text-[11px] text-accent font-semibold uppercase tracking-wider">

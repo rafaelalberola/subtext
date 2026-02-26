@@ -19,7 +19,7 @@
   "upload_screenshot": "o sube una captura de pantalla",
   "analyze_button": "Leer entre líneas",
   "analyzing": "Descifrando...",
-  "back": "Volver",
+  "back": "Atrás",
   "analyze_another": "Descifrar otro",
   "save_analysis": "Guardar",
   "card_decoded_title": "Lo que dijo vs. lo que quiso decir",
@@ -243,5 +243,11 @@
   "time_ago_just_now": "Ahora",
   "new_reading": "Nueva lectura",
   "no_readings_yet": "Sin lecturas aun",
-  "no_readings_person_subtitle": "Analiza una conversacion para empezar."
+  "no_readings_person_subtitle": "Analiza una conversación para empezar.",
+
+  "tone_Direct": "Directo",
+  "tone_Warm": "Cercano",
+  "tone_Playful": "Juguetón",
+  "tone_Professional": "Profesional",
+  "tone_Cautious": "Cauteloso"
 }

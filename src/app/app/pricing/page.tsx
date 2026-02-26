@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useI18n } from '@/lib/i18n'
 import { useSubscription } from '@/lib/subscription-context'
 import { analytics } from '@/lib/analytics'
@@ -9,7 +8,8 @@ import BillingToggle from '@/components/BillingToggle'
 import PricingCards from '@/components/PricingCards'
 import CreditPacks from '@/components/CreditPacks'
 import PlanBadge from '@/components/PlanBadge'
-import { ChevronDown, ArrowLeft } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
+import PageHeader from '@/components/ui/PageHeader'
 import type { PlanId, BillingInterval } from '@/types/subscription'
 
 const PRICE_MAP: Record<string, string> = {
@@ -66,27 +66,11 @@ export default function PricingPage() {
 
   return (
     <div className="flex flex-col gap-8 pb-8">
-      {/* Back to app */}
-      <Link
-        href="/app"
-        className="flex items-center gap-2 text-body text-text-secondary hover:text-text-primary transition-colors min-h-[44px]"
-      >
-        <ArrowLeft size={18} strokeWidth={1.5} />
-        {t('back')}
-      </Link>
-
-      {/* Header */}
-      <div className="text-center flex flex-col gap-2">
-        <div className="flex items-center justify-center gap-2">
-          <h1 className="text-title text-text-primary">{t('pricing_title')}</h1>
-          {currentPlan !== 'free' && <PlanBadge plan={currentPlan} />}
-        </div>
-        <p className="text-body text-text-secondary">
-          {t('pricing_subtitle_1')}
-          <br className="md:hidden" />
-          {' '}{t('pricing_subtitle_2')}
-        </p>
-      </div>
+      <PageHeader
+        onBack={() => window.history.back()}
+        title={t('pricing_title')}
+        subtitle={`${t('pricing_subtitle_1')} ${t('pricing_subtitle_2')}`}
+      />
 
       {/* Toggle */}
       <BillingToggle interval={billingInterval} onChange={setBillingInterval} />

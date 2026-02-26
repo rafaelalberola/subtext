@@ -48,6 +48,8 @@ export default function AnalysisDetailPage() {
         showSave={false}
         plan={usage?.plan || 'free'}
         contactName={analysis.contact_label}
+        inputText={analysis.input_text}
+        createdAt={analysis.created_at}
       />
     </>
   )

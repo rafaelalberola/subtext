@@ -7,6 +7,7 @@ import HistoryList from '@/components/HistoryList'
 import Skeleton from '@/components/ui/Skeleton'
 import { LogIn } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
+import PageHeader from '@/components/ui/PageHeader'
 import Link from 'next/link'
 
 export default function HistoryPage() {
@@ -48,7 +49,7 @@ export default function HistoryPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-title text-text-primary mb-6">{t('history_title')}</h1>
+        <PageHeader title={t('history_title')} />
         <div className="flex flex-col gap-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-bg-surface rounded-card p-4 border border-border flex flex-col gap-3">
@@ -68,7 +69,7 @@ export default function HistoryPage() {
   if (!isAuthed) {
     return (
       <div>
-        <h1 className="text-title text-text-primary mb-6">{t('history_title')}</h1>
+        <PageHeader title={t('history_title')} />
         <div className="text-center py-16 flex flex-col gap-4">
           <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center mx-auto">
             <LogIn size={24} strokeWidth={1.5} className="text-text-tertiary" />
@@ -81,7 +82,7 @@ export default function HistoryPage() {
           </div>
           <Link
             href="/app"
-            className="inline-flex items-center text-accent text-body font-medium hover:text-accent-hover transition-colors"
+            className="inline-flex items-center text-accent text-body font-medium underline hover:text-accent-hover transition-colors"
           >
             {t('go_to_analyze')}
           </Link>
@@ -92,7 +93,7 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <h1 className="text-title text-text-primary mb-6">{t('history_title')}</h1>
+      <PageHeader title={t('history_title')} />
       <HistoryList analyses={analyses} onDelete={handleDelete} />
     </div>
   )

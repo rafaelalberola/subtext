@@ -1,5 +1,7 @@
 'use client'
 
+import { useI18n } from '@/lib/i18n'
+
 interface PillProps {
   label: string
   emoji?: string
@@ -34,6 +36,7 @@ export default function Pill({ label, emoji, color = 'gray', className = '' }: P
 }
 
 export function TonePill({ tone }: { tone: string }) {
+  const { t } = useI18n()
   const colorMap: Record<string, PillProps['color']> = {
     Direct: 'blue',
     Warm: 'pink',
@@ -42,5 +45,6 @@ export function TonePill({ tone }: { tone: string }) {
     Cautious: 'yellow',
   }
 
-  return <Pill label={tone} color={colorMap[tone] || 'gray'} />
+  const label = t(`tone_${tone}` as any) || tone
+  return <Pill label={label} color={colorMap[tone] || 'gray'} />
 }

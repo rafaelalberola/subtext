@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Person, SavedAnalysis, AnalysisResult } from '@/types/analysis'
@@ -10,10 +10,11 @@ import CompactInput from '@/components/CompactInput'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import BottomSheet from '@/components/ui/BottomSheet'
 import Skeleton from '@/components/ui/Skeleton'
-import { LogIn, Users, ArrowLeft, Plus, Trash2, ChevronRight } from 'lucide-react'
+import { LogIn, Users, Plus, Trash2, ChevronRight } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 import { useSubscription } from '@/lib/subscription-context'
 import { PERSON_CONTEXT_PREFIX } from '@/lib/prompts'
+import PageHeader from '@/components/ui/PageHeader'
 import Link from 'next/link'
 import type { TranslationKey } from '@/lib/i18n'
 
@@ -48,6 +49,8 @@ export default function PeoplePage() {
   const router = useRouter()
 
   const supabase = createClient()
+
+  const initialPersonParam = useRef(searchParams.get('person'))
 
   useEffect(() => {
     async function load() {
@@ -85,7 +88,7 @@ export default function PeoplePage() {
 
       // Restore selected person from URL param before clearing loading
       // to avoid a flash of the people list
-      const personParam = searchParams.get('person')
+      const personParam = initialPersonParam.current
       const matchedPerson = personParam
         ? loadedPeople.find((p) => p.id === personParam)
         : null
@@ -102,7 +105,7 @@ export default function PeoplePage() {
     }
 
     load()
-  }, [supabase, searchParams])
+  }, [supabase])
 
   const loadPersonAnalyses = async (person: Person) => {
     setSelectedPerson(person)
@@ -246,7 +249,7 @@ export default function PeoplePage() {
     }
     return (
       <div>
-        <h1 className="text-title text-text-primary mb-6">{t('people_title')}</h1>
+        <PageHeader title={t('people_title')} />
         <div className="flex flex-col gap-2">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-bg-surface rounded-card p-4 border border-border flex items-center gap-4">
@@ -266,7 +269,7 @@ export default function PeoplePage() {
   if (!isAuthed) {
     return (
       <div>
-        <h1 className="text-title text-text-primary mb-6">{t('people_title')}</h1>
+        <PageHeader title={t('people_title')} />
         <div className="text-center py-16 flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center">
             <LogIn size={24} strokeWidth={1.5} className="text-text-tertiary" />
@@ -277,7 +280,7 @@ export default function PeoplePage() {
           </div>
           <Link
             href="/app"
-            className="inline-flex items-center text-accent text-body font-medium hover:text-accent-hover transition-colors"
+            className="inline-flex items-center text-accent text-body font-medium underline hover:text-accent-hover transition-colors"
           >
             {t('go_to_analyze')}
           </Link>
@@ -289,25 +292,14 @@ export default function PeoplePage() {
   // Person detail: Claude Chats-style flat list
   if (selectedPerson) {
     return (
-      <div className="flex flex-col gap-4 pb-4">
+      <div className="flex flex-col gap-0 pb-4 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleBack}
-            className="p-1 text-text-secondary hover:text-text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-          >
-            <ArrowLeft size={20} strokeWidth={1.5} />
-          </button>
-          <div className="w-10 h-10 rounded-full bg-bg-secondary flex items-center justify-center text-xl flex-shrink-0">
-            {selectedPerson.avatar_emoji}
-          </div>
-          <div className="flex flex-col gap-0 flex-1">
-            <h1 className="text-subtitle text-text-primary">{selectedPerson.name}</h1>
-            <p className="text-caption text-text-tertiary">
-              {analysisCounts[selectedPerson.id] || 0} {t('analyses_count')}
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          onBack={handleBack}
+          title={selectedPerson.name}
+          subtitle={`${analysisCounts[selectedPerson.id] || 0} ${t('analyses_count')}`}
+          avatar={selectedPerson.avatar_emoji}
+        />
 
         {/* Analyses list: flat rows like Claude Chats */}
         {loadingAnalyses ? (
@@ -339,13 +331,16 @@ export default function PeoplePage() {
               >
                 <div className="flex-1 flex flex-col gap-1 min-w-0">
                   <p className="text-body text-text-primary truncate">
-                    {item.analysis_json.overall_read.slice(0, 80)}
+                    {item.input_text?.slice(0, 80) || item.analysis_json.overall_read.slice(0, 80)}
+                  </p>
+                  <p className="text-caption text-text-tertiary truncate">
+                    {item.analysis_json.decoded_pairs[0]?.meant}
                   </p>
                   <span className="text-caption text-text-tertiary">
                     {formatTimeAgo(item.created_at, t)}
                   </span>
                 </div>
-                <ChevronRight size={16} strokeWidth={1.5} className="text-text-tertiary flex-shrink-0" />
+                <ChevronRight size={16} strokeWidth={1.5} className="text-text-tertiary flex-shrink-0 self-center" />
               </Link>
             ))}
 
@@ -380,7 +375,7 @@ export default function PeoplePage() {
   // People list view
   return (
     <div className="pb-24">
-      <h1 className="text-title text-text-primary mb-6">{t('people_title')}</h1>
+      <PageHeader title={t('people_title')} />
 
       {people.length === 0 ? (
         <div className="text-center py-16 flex flex-col items-center gap-4">
@@ -389,7 +384,7 @@ export default function PeoplePage() {
           </div>
           <div className="flex flex-col gap-1">
             <p className="text-subtitle text-text-primary">{t('people_empty_title')}</p>
-            <p className="text-body text-text-secondary">{t('people_empty_subtitle')}</p>
+            <p className="text-body text-text-secondary max-w-[70%] mx-auto">{t('people_empty_subtitle')}</p>
           </div>
         </div>
       ) : (
@@ -409,7 +404,8 @@ export default function PeoplePage() {
       {/* FAB - floating add button */}
       <button
         onClick={() => setShowAddForm(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-accent text-white shadow-lg hover:bg-accent-hover transition-colors flex items-center justify-center z-40"
+        className="fixed bottom-24 right-6 w-14 h-14 rounded-full text-white transition-colors flex items-center justify-center z-40"
+        style={{ background: 'linear-gradient(180deg, rgb(13 13 13) 0%, rgb(13 13 13 / 73%) 100%)' }}
       >
         <Plus size={24} strokeWidth={2} />
       </button>

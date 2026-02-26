@@ -12,7 +12,7 @@
   "landing_footer": "Made with care · Your conversations stay private",
   "open_app": "Open app",
   "main_subtitle": "Paste a conversation and discover what they really mean.",
-  "placeholder_1": "Paste a message you want to understand better...",
+  "placeholder_1": "Write something...",
   "placeholder_2": "What did they really mean?",
   "placeholder_3": "Drop a screenshot or paste the conversation",
   "placeholder_4": "\"It's fine\"... but is it really?",
@@ -243,5 +243,11 @@
   "time_ago_just_now": "Just now",
   "new_reading": "New reading",
   "no_readings_yet": "No readings yet",
-  "no_readings_person_subtitle": "Analyze a conversation to get started."
+  "no_readings_person_subtitle": "Analyze a conversation to get started.",
+
+  "tone_Direct": "Direct",
+  "tone_Warm": "Warm",
+  "tone_Playful": "Playful",
+  "tone_Professional": "Professional",
+  "tone_Cautious": "Cautious"
 }

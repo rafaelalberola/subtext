@@ -53,7 +53,7 @@ export default function BottomSheet({ open, onClose, title, children }: BottomSh
         )}
 
         {/* Content */}
-        <div className="px-section pb-section max-h-[70vh] overflow-y-auto">
+        <div className="px-section pb-24 max-h-[70vh] overflow-y-auto">
           {children}
         </div>
       </div>

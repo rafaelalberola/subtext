@@ -116,6 +116,8 @@ export default function HistoryList({ analyses, onDelete }: HistoryListProps) {
                     onBack={() => setExpandedId(null)}
                     showSave={false}
                     contactName={item.contact_label}
+                    inputText={item.input_text}
+                    createdAt={item.created_at}
                   />
                 </div>
               )}

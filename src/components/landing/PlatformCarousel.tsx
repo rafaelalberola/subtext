@@ -38,17 +38,24 @@ export default function PlatformCarousel() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Scroll container - bleeds out of parent padding */}
-      <div
-        ref={scrollRef}
-        className="flex items-stretch gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory -mx-section pl-section"
-        style={{ paddingRight: '24px' }}
-      >
-        {platforms.map((platform, i) => (
-          <div key={platform} className="snap-center flex-shrink-0 w-[85vw] max-w-[340px] flex">
-            <PlatformCard platform={platform} animationDelay={400 + i * 200} />
-          </div>
-        ))}
+      {/* Scroll container with edge fade */}
+      <div className="relative -mx-section">
+        <div
+          ref={scrollRef}
+          className="flex items-stretch gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pl-section"
+          style={{ paddingRight: '24px' }}
+        >
+          {platforms.map((platform, i) => (
+            <div key={platform} className="snap-center flex-shrink-0 w-[85vw] max-w-[340px] flex">
+              <PlatformCard platform={platform} animationDelay={400 + i * 200} />
+            </div>
+          ))}
+        </div>
+
+        {/* Left fade */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-6 md:w-16 bg-gradient-to-r from-white to-transparent" />
+        {/* Right fade */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-6 md:w-16 bg-gradient-to-l from-white to-transparent" />
       </div>
 
       {/* Dot indicators */}
