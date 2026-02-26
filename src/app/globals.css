@@ -53,7 +53,7 @@ body {
   scrollbar-width: none;
 }
 
-/* WhatsApp-style bubble tails */
+/* WhatsApp-style bubble tails (landing page mockup) */
 .bubble-tail-left {
   position: relative;
 }
@@ -79,4 +79,22 @@ body {
   height: 0;
   border-top: 8px solid #DCF8C6;
   border-right: 8px solid transparent;
+}
+
+/* Liquid glass bubble effect (Apple-style) */
+.bubble-glass {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.25) 100%
+  );
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  border-left: 1px solid rgba(255, 255, 255, 0.5);
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.07),
+    0 1px 3px rgba(0, 0, 0, 0.04);
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, ReactNode } from 'react'
-import { I18nContext, detectLocale, saveLocale, translate, type Locale, type TranslationKey } from '@/lib/i18n'
+import { I18nContext, detectLocale, translate, type Locale, type TranslationKey } from '@/lib/i18n'
 
 export default function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('en')
@@ -11,7 +11,6 @@ export default function I18nProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setLocale = useCallback((newLocale: Locale) => {
-    saveLocale(newLocale)
     setLocaleState(newLocale)
   }, [])
 

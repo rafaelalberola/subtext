@@ -53,7 +53,7 @@ export default function ConfirmDialog({
       {/* Dialog */}
       <div className="absolute inset-0 flex items-center justify-center p-6">
         <div
-          className="bg-white rounded-dialog shadow-dialog border border-border max-w-sm w-full p-6 space-y-4 animate-dialog-in"
+          className="bg-white rounded-dialog shadow-dialog border border-border max-w-sm w-full p-6 flex flex-col gap-4 animate-dialog-in"
           onClick={(e) => e.stopPropagation()}
         >
           <h2 className="text-subtitle text-text-primary">{title}</h2>

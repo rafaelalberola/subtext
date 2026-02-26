@@ -1,14 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { LogOut, LogIn, Trash2, Shield } from 'lucide-react'
+import { LogOut, LogIn, Trash2, Shield, CreditCard, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useI18n } from '@/lib/i18n'
-import LanguageToggle from '@/components/LanguageToggle'
+import { useSubscription } from '@/lib/subscription-context'
 import AuthPrompt from '@/components/AuthPrompt'
+import PlanBadge from '@/components/PlanBadge'
 import Button from '@/components/ui/Button'
 import SectionGroup from '@/components/ui/SectionGroup'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 
 export default function SettingsPage() {
@@ -16,7 +18,9 @@ export default function SettingsPage() {
   const [showAuth, setShowAuth] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [loading, setLoading] = useState(true)
-  const { locale, setLocale, t } = useI18n()
+  const [portalLoading, setPortalLoading] = useState(false)
+  const { t } = useI18n()
+  const { usage } = useSubscription()
 
   const supabase = createClient()
 
@@ -46,31 +50,77 @@ export default function SettingsPage() {
     setShowDeleteConfirm(false)
   }
 
+  const handleManageSubscription = async () => {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/stripe/create-portal', { method: 'POST' })
+      const { url } = await res.json()
+      if (url) window.location.href = url
+    } catch {
+      setPortalLoading(false)
+    }
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <h1 className="text-title text-text-primary">{t('settings_title')}</h1>
 
-      {/* Language */}
-      <SectionGroup title={t('settings_language')}>
-        <div className="bg-white rounded-input p-4 border border-border">
-          <LanguageToggle locale={locale} onChange={setLocale} />
-        </div>
-        <p className="text-caption text-text-tertiary">
-          {locale === 'es'
-            ? 'El idioma del análisis se determina por la conversación, no por este ajuste.'
-            : 'Analysis language is determined by the input conversation, not this setting.'}
-        </p>
-      </SectionGroup>
+      {/* Subscription */}
+      {user && (
+        <SectionGroup title={t('settings_subscription')}>
+          <div className="bg-white rounded-card p-4 border border-border flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={16} strokeWidth={1.5} className="text-text-tertiary" />
+                  <span className="text-body text-text-primary font-medium">
+                    {t('settings_current_plan')}
+                  </span>
+                </div>
+                {usage && <PlanBadge plan={usage.plan} />}
+              </div>
+
+              {usage && (
+                <div className="text-caption text-text-secondary">
+                  {usage.used} / {usage.limit} {t('usage_analyses_used')}
+                  {usage.bonus_credits > 0 && (
+                    <span className="text-warning"> + {usage.bonus_credits} {t('usage_credits')}</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {usage && usage.plan !== 'free' ? (
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={handleManageSubscription}
+                disabled={portalLoading}
+              >
+                {t('settings_manage_subscription')}
+                <ArrowRight size={14} strokeWidth={1.5} />
+              </Button>
+            ) : (
+              <Link href="/app/pricing">
+                <Button variant="primary" fullWidth>
+                  {t('upgrade')}
+                  <ArrowRight size={14} strokeWidth={1.5} />
+                </Button>
+              </Link>
+            )}
+          </div>
+        </SectionGroup>
+      )}
 
       {/* Account */}
       <SectionGroup title={t('settings_account')}>
         {loading ? (
-          <div className="h-14 bg-white rounded-input animate-shimmer shimmer" />
+          <div className="h-14 bg-white rounded-card animate-shimmer shimmer" />
         ) : user ? (
-          <div className="space-y-3">
-            <div className="bg-white rounded-input p-4 border border-border">
+          <div className="flex flex-col gap-3">
+            <div className="bg-white rounded-card p-4 border border-border flex flex-col gap-1">
               <p className="text-caption text-text-tertiary">{t('settings_signed_in_as')}</p>
-              <p className="text-body text-text-primary font-medium mt-0.5">
+              <p className="text-body text-text-primary font-medium">
                 {user.email}
               </p>
             </div>
@@ -92,7 +142,7 @@ export default function SettingsPage() {
       {/* Privacy */}
       <SectionGroup title={t('settings_privacy')}>
         <div className="flex items-start gap-3 p-4 bg-white rounded-card border border-border">
-          <Shield size={18} strokeWidth={1.5} className="text-success mt-0.5 flex-shrink-0" />
+          <Shield size={18} strokeWidth={1.5} className="text-success flex-shrink-0 mt-0.5" />
           <p className="text-body text-text-secondary">
             {t('settings_privacy_note')}
           </p>
@@ -100,13 +150,24 @@ export default function SettingsPage() {
         {user && (
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="flex items-center gap-2 text-body text-text-tertiary hover:text-danger transition-colors min-h-[44px]"
+            className="flex items-center justify-center gap-2 text-body text-text-tertiary hover:text-danger transition-colors min-h-[44px] w-full"
           >
             <Trash2 size={16} strokeWidth={1.5} />
             {t('settings_delete_data')}
           </button>
         )}
       </SectionGroup>
+
+      {/* Legal */}
+      <div className="flex items-center justify-center gap-3 text-caption text-text-tertiary pt-4">
+        <Link href="/privacy" className="hover:text-text-secondary transition-colors">
+          {t('privacy_policy_title')}
+        </Link>
+        <span>·</span>
+        <Link href="/terms" className="hover:text-text-secondary transition-colors">
+          {t('terms_title')}
+        </Link>
+      </div>
 
       <ConfirmDialog
         open={showDeleteConfirm}

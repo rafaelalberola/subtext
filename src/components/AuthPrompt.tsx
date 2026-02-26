@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Mail } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { createClient } from '@/lib/supabase/client'
+import { useI18n } from '@/lib/i18n'
 
 interface AuthPromptProps {
   onAuthSuccess?: () => void
@@ -14,6 +15,7 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useI18n()
   const supabase = createClient()
 
   const handleGoogleSignIn = async () => {
@@ -54,26 +56,28 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
 
   if (sent) {
     return (
-      <div className="bg-bg-surface rounded-card p-section border border-border text-center space-y-3">
-        <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mx-auto">
+      <div className="bg-bg-surface rounded-card p-section border border-border text-center flex flex-col items-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center">
           <Mail size={20} className="text-success" />
         </div>
-        <h3 className="text-subtitle text-text-primary">Check your email</h3>
-        <p className="text-body text-text-secondary">
-          We sent a sign-in link to <strong>{email}</strong>
-        </p>
+        <div className="flex flex-col gap-1">
+          <h3 className="text-subtitle text-text-primary">{t('auth_check_email')}</h3>
+          <p className="text-body text-text-secondary">
+            {t('auth_email_sent')} <strong>{email}</strong>
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-bg-surface rounded-card p-section border border-border space-y-5">
-      <div className="text-center space-y-2">
+    <div className="bg-bg-surface rounded-card p-section border border-border flex flex-col gap-5">
+      <div className="text-center flex flex-col gap-2">
         <h3 className="text-subtitle text-text-primary">
-          Save your insights
+          {t('auth_save_title')}
         </h3>
         <p className="text-body text-text-secondary">
-          Create a free account to save analyses and build context over time.
+          {t('auth_save_subtitle')}
         </p>
       </div>
 
@@ -106,23 +110,23 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
           />
         </svg>
-        Continue with Google
+        {t('auth_google')}
       </Button>
 
       {/* Divider */}
       <div className="flex items-center gap-3">
         <div className="flex-1 h-px bg-border" />
-        <span className="text-caption text-text-tertiary">or</span>
+        <span className="text-caption text-text-tertiary">{t('auth_or')}</span>
         <div className="flex-1 h-px bg-border" />
       </div>
 
       {/* Magic link */}
-      <form onSubmit={handleMagicLink} className="space-y-3">
+      <form onSubmit={handleMagicLink} className="flex flex-col gap-3">
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="your@email.com"
+          placeholder={t('auth_email_placeholder')}
           className="w-full h-14 px-4 rounded-input bg-bg-secondary text-body text-text-primary placeholder:text-text-tertiary border-2 border-transparent focus:border-accent focus:bg-white focus:outline-none transition-all duration-200"
           disabled={loading}
         />
@@ -133,7 +137,7 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
           disabled={!email.trim() || loading}
         >
           <Mail size={16} strokeWidth={1.5} />
-          Send magic link
+          {t('auth_magic_link')}
         </Button>
       </form>
     </div>

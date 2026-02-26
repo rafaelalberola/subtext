@@ -33,9 +33,9 @@ export default function AddPersonForm({ open, onClose, onSave }: AddPersonFormPr
 
   return (
     <BottomSheet open={open} onClose={handleClose} title={t('add_person_title')}>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-caption text-text-secondary mb-2">{t('choose_emoji')}</label>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <label className="text-caption text-text-secondary">{t('choose_emoji')}</label>
           <div className="flex flex-wrap gap-2">
             {EMOJI_OPTIONS.map((e) => (
               <button
@@ -50,8 +50,8 @@ export default function AddPersonForm({ open, onClose, onSave }: AddPersonFormPr
           </div>
         </div>
 
-        <div>
-          <label className="block text-caption text-text-secondary mb-2">{t('person_name')}</label>
+        <div className="flex flex-col gap-2">
+          <label className="text-caption text-text-secondary">{t('person_name')}</label>
           <input
             type="text"
             value={name}

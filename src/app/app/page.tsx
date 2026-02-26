@@ -2,19 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import { AnalysisResult, Person } from '@/types/analysis'
-import ConversationInput from '@/components/ConversationInput'
+import CompactInput from '@/components/CompactInput'
 import AnalysisResults from '@/components/AnalysisResults'
 import AuthPrompt from '@/components/AuthPrompt'
 import PersonSelector from '@/components/PersonSelector'
+import PersonHeader from '@/components/chat/PersonHeader'
+import UpgradePrompt, { LowUsageBanner } from '@/components/UpgradePrompt'
 import { AnalysisSkeleton } from '@/components/ui/Skeleton'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { useI18n } from '@/lib/i18n'
-import { AlertCircle } from 'lucide-react'
+import { useSubscription } from '@/lib/subscription-context'
+import { AlertCircle, Sparkles } from 'lucide-react'
 import { PERSON_CONTEXT_PREFIX } from '@/lib/prompts'
 import type { User } from '@supabase/supabase-js'
 
 type AppView = 'input' | 'loading' | 'results'
+
+const ANALYSIS_STORAGE_KEY = 'reveald_pending_analysis'
 
 export default function AppPage() {
   const [view, setView] = useState<AppView>('input')
@@ -23,30 +28,47 @@ export default function AppPage() {
   const [inputType, setInputType] = useState<'text' | 'screenshot'>('text')
   const [error, setError] = useState<string | null>(null)
   const [user, setUser] = useState<User | null>(null)
-  const [showAuth, setShowAuth] = useState(false)
-  const [hasUsedFreeAnalysis, setHasUsedFreeAnalysis] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
   const [people, setPeople] = useState<Person[]>([])
   const [selectedPersonForContext, setSelectedPersonForContext] = useState<Person | null>(null)
   const [showPersonSelector, setShowPersonSelector] = useState(false)
+  const [showPersonPicker, setShowPersonPicker] = useState(false)
+  const [showUpgrade, setShowUpgrade] = useState(false)
   const { showToast } = useToast()
   const { t } = useI18n()
+  const { usage, refreshUsage } = useSubscription()
 
   const supabase = createClient()
 
   useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(ANALYSIS_STORAGE_KEY)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        setAnalysis(parsed.analysis)
+        setInputText(parsed.inputText || '')
+        setInputType(parsed.inputType || 'text')
+        setView('results')
+        sessionStorage.removeItem(ANALYSIS_STORAGE_KEY)
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
+      setAuthLoading(false)
       if (user) loadPeople()
     })
 
-    const used = localStorage.getItem('subtext_free_analysis_used')
-    if (used) setHasUsedFreeAnalysis(true)
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      setAuthLoading(false)
       if (session?.user) {
-        setShowAuth(false)
         loadPeople()
+        refreshUsage()
       }
     })
 
@@ -59,6 +81,14 @@ export default function AppPage() {
       .select('*')
       .order('name')
     setPeople((data as Person[]) || [])
+  }
+
+  const persistAnalysis = () => {
+    if (analysis) {
+      sessionStorage.setItem(ANALYSIS_STORAGE_KEY, JSON.stringify({
+        analysis, inputText, inputType,
+      }))
+    }
   }
 
   const handleSubmit = async (data: { text?: string; screenshot?: string }) => {
@@ -92,6 +122,9 @@ export default function AppPage() {
         body: JSON.stringify({ ...data, personContext }),
       })
 
+      if (res.status === 401) { setView('input'); return }
+      if (res.status === 402) { setShowUpgrade(true); setView('input'); return }
+
       if (!res.ok) {
         const errorData = await res.json()
         throw new Error(errorData.error || 'Analysis failed')
@@ -100,11 +133,7 @@ export default function AppPage() {
       const result: AnalysisResult = await res.json()
       setAnalysis(result)
       setView('results')
-
-      if (!user) {
-        localStorage.setItem('subtext_free_analysis_used', 'true')
-        setHasUsedFreeAnalysis(true)
-      }
+      refreshUsage()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setView('input')
@@ -114,15 +143,11 @@ export default function AppPage() {
   const handleBack = () => {
     setView('input')
     setAnalysis(null)
-    setShowAuth(false)
+    sessionStorage.removeItem(ANALYSIS_STORAGE_KEY)
   }
 
   const handleSave = async () => {
-    if (!user) {
-      setShowAuth(true)
-      return
-    }
-    if (!analysis) return
+    if (!user || !analysis) return
     setShowPersonSelector(true)
   }
 
@@ -144,98 +169,139 @@ export default function AppPage() {
       showToast(t('save_failed'))
     } else {
       showToast(t('saved'))
-      // Refresh people list in case a new person was created
       loadPeople()
     }
   }
 
-  return (
-    <div>
-      {view === 'input' && (
-        <div className="mb-8 pt-4 text-center">
+  useEffect(() => {
+    if (view === 'results' && analysis) persistAnalysis()
+  }, [view, analysis])
+
+  const remaining = usage ? Math.max(0, usage.limit + usage.bonus_credits - usage.used) : undefined
+  const total = usage ? usage.limit + usage.bonus_credits : undefined
+
+  // Auth prompt
+  if (!authLoading && !user) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="pt-4 text-center flex flex-col gap-2">
           <h1 className="font-serif text-display text-text-primary">{t('app_name')}</h1>
-          <p className="text-body text-text-secondary mt-2 max-w-md mx-auto">
-            {t('main_subtitle')}
-          </p>
+          <p className="text-body text-text-secondary max-w-md mx-auto">{t('main_subtitle')}</p>
         </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-center gap-2 bg-success-bg rounded-card px-4 py-3">
+            <span className="text-success text-body">✓</span>
+            <p className="text-body text-success-text font-medium">{t('auth_required_subtitle')}</p>
+          </div>
+          <AuthPrompt />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Input view: centered Claude-like layout */}
+      {view === 'input' && (
+        <>
+          <div
+            className="flex flex-col items-center justify-center text-center"
+            style={{ minHeight: 'calc(100vh - 280px)' }}
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center">
+                <Sparkles size={24} strokeWidth={1.5} className="text-text-tertiary" />
+              </div>
+              <h1 className="font-serif text-display text-text-primary">{t('app_name')}</h1>
+              <p className="text-body text-text-secondary max-w-xs">{t('main_subtitle')}</p>
+            </div>
+
+            {/* Person selector */}
+            {user && people.length > 0 && (
+              <div className="mt-8 w-full">
+                {selectedPersonForContext ? (
+                  <PersonHeader
+                    person={selectedPersonForContext}
+                    onChangePress={() => setShowPersonPicker(true)}
+                  />
+                ) : (
+                  <div className="flex flex-col gap-2 items-center">
+                    <p className="text-caption text-text-secondary">{t('analyzing_conversation_with')}</p>
+                    <div className="flex gap-2 flex-wrap justify-center">
+                      <button className="px-3 py-1.5 rounded-full text-caption border transition-all border-accent text-accent font-medium bg-accent/5">
+                        {t('anyone')}
+                      </button>
+                      {people.map((p) => (
+                        <button
+                          key={p.id}
+                          onClick={() => setSelectedPersonForContext(p)}
+                          className="px-3 py-1.5 rounded-full text-caption flex items-center gap-1.5 border transition-all border-border text-text-tertiary hover:border-text-tertiary"
+                        >
+                          <span>{p.avatar_emoji}</span>
+                          {p.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {usage && usage.remaining === 1 && <LowUsageBanner />}
+        </>
       )}
 
       {error && (
-        <div className="mb-4 p-4 bg-danger-bg text-danger-text text-body rounded-card flex items-start gap-3">
+        <div className="p-4 bg-danger-bg text-danger-text text-body rounded-card flex items-start gap-3">
           <AlertCircle size={18} strokeWidth={1.5} className="text-danger mt-0.5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {view === 'input' && (
-        <>
-          {user && people.length > 0 && (
-            <div className="mb-4">
-              <p className="text-caption text-text-secondary mb-2">{t('analyzing_conversation_with')}</p>
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setSelectedPersonForContext(null)}
-                  className={`px-3 py-1.5 rounded-full text-caption border transition-all ${
-                    !selectedPersonForContext
-                      ? 'border-accent text-accent font-medium bg-accent/5'
-                      : 'border-border text-text-tertiary hover:border-text-tertiary'
-                  }`}
-                >
-                  {t('anyone')}
-                </button>
-                {people.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setSelectedPersonForContext(p)}
-                    className={`px-3 py-1.5 rounded-full text-caption flex items-center gap-1.5 border transition-all ${
-                      selectedPersonForContext?.id === p.id
-                        ? 'border-accent text-accent font-medium bg-accent/5'
-                        : 'border-border text-text-tertiary hover:border-text-tertiary'
-                    }`}
-                  >
-                    <span>{p.avatar_emoji}</span>
-                    {p.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          <ConversationInput onSubmit={handleSubmit} isLoading={false} />
-        </>
-      )}
-
       {view === 'loading' && <AnalysisSkeleton />}
 
       {view === 'results' && analysis && (
-        <>
-          <AnalysisResults
-            analysis={analysis}
-            onBack={handleBack}
-            onSave={handleSave}
-            showSave={true}
-          />
+        <AnalysisResults
+          analysis={analysis}
+          onBack={handleBack}
+          onSave={handleSave}
+          showSave={true}
+          plan={usage?.plan || 'free'}
+          contactName={selectedPersonForContext?.name}
+        />
+      )}
 
-          {!user && hasUsedFreeAnalysis && showAuth && (
-            <div className="mt-card-gap">
-              <AuthPrompt />
-            </div>
-          )}
+      {/* Sticky compact input */}
+      {user && view !== 'loading' && (
+        <CompactInput
+          onSubmit={handleSubmit}
+          isLoading={false}
+          remaining={remaining}
+          total={total}
+        />
+      )}
 
-          {!user && hasUsedFreeAnalysis && !showAuth && (
-            <button
-              onClick={() => setShowAuth(true)}
-              className="w-full mt-4 text-center text-caption text-text-tertiary hover:text-accent transition-colors py-2"
-            >
-              {t('auth_nudge')}
-            </button>
-          )}
-        </>
+      {showPersonPicker && (
+        <PersonSelector
+          open={showPersonPicker}
+          onClose={() => setShowPersonPicker(false)}
+          onSelect={(person) => {
+            setSelectedPersonForContext(person)
+            setShowPersonPicker(false)
+          }}
+        />
       )}
 
       <PersonSelector
         open={showPersonSelector}
         onClose={() => setShowPersonSelector(false)}
         onSelect={handleSaveWithPerson}
+      />
+
+      <UpgradePrompt
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
       />
     </div>
   )

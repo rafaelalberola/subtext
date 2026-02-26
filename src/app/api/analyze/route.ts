@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { analyzeConversation } from '@/lib/claude'
+import { createClient } from '@/lib/supabase/server'
+import { PLAN_LIMITS, getAllowedTones } from '@/lib/usage'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
+import type { PlanId } from '@/types/subscription'
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth check
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'auth_required' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
     const { text, screenshot, personContext } = body as { text?: string; screenshot?: string; personContext?: string }
 
@@ -29,7 +44,61 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Usage check
+    const { data: sub } = await supabase
+      .from('user_subscriptions')
+      .select('plan, bonus_credits')
+      .eq('user_id', user.id)
+      .single()
+
+    const plan: PlanId = (sub?.plan as PlanId) || 'free'
+    const bonusCredits = sub?.bonus_credits || 0
+    const limit = PLAN_LIMITS[plan]
+
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()
+
+    const { count } = await supabase
+      .from('analysis_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', monthStart)
+      .lt('created_at', monthEnd)
+
+    const used = count || 0
+    const remaining = limit + bonusCredits - used
+
+    if (remaining <= 0) {
+      return NextResponse.json(
+        { error: 'usage_limit_reached', plan, used, limit },
+        { status: 402 }
+      )
+    }
+
     const analysis = await analyzeConversation({ text, screenshot, personContext })
+
+    // Record usage event
+    await supabase.from('analysis_events').insert({ user_id: user.id })
+
+    // If consuming bonus credits (used >= plan limit), decrement
+    if (used >= limit && bonusCredits > 0) {
+      const admin = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+      await admin.from('user_subscriptions')
+        .update({ bonus_credits: bonusCredits - 1, updated_at: new Date().toISOString() })
+        .eq('user_id', user.id)
+    }
+
+    // Filter tones for free users
+    if (plan === 'free') {
+      const allowedTones = getAllowedTones(plan)
+      analysis.suggested_responses = analysis.suggested_responses.filter(
+        r => allowedTones.includes(r.tone)
+      )
+    }
 
     return NextResponse.json(analysis)
   } catch (error) {

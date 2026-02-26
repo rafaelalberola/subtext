@@ -24,24 +24,22 @@ export default function ChatBubble({
   const isLeft = side === 'left'
 
   const bubbleClasses = [
-    'relative px-3 py-2 max-w-[85%] shadow-sm',
-    isLeft ? 'bg-wa-bubble-in self-start' : 'bg-wa-bubble-out self-end',
+    'relative pt-6 pr-6 pb-6 pl-4 shadow-sm',
+    isLeft ? 'bg-wa-bubble-in' : 'bg-wa-bubble-out',
     showTail
       ? isLeft
-        ? 'rounded-lg rounded-tl-none bubble-tail-left ml-2'
-        : 'rounded-lg rounded-tr-none bubble-tail-right mr-2'
+        ? 'rounded-lg rounded-tl-none bubble-tail-left'
+        : 'rounded-lg rounded-tr-none bubble-tail-right'
       : 'rounded-lg',
-    !showTail && isLeft ? 'ml-2' : '',
-    !showTail && !isLeft ? 'mr-2' : '',
     animated ? 'opacity-0 animate-fade-in-up' : '',
   ]
     .filter(Boolean)
     .join(' ')
 
   return (
-    <div className={`flex flex-col ${isLeft ? 'items-start' : 'items-end'}`}>
+    <div className="flex flex-col">
       {speaker && showTail && (
-        <span className={`text-[11px] font-medium text-wa-green-dark mb-0.5 ${isLeft ? 'ml-2' : 'mr-2'}`}>
+        <span className="text-[11px] font-medium text-wa-green-dark mb-0.5">
           {speaker}
         </span>
       )}

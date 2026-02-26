@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import ConversationMockup from '@/components/chat/ConversationMockup'
+import PlatformCarousel from '@/components/landing/PlatformCarousel'
 import { useI18n } from '@/lib/i18n'
 
 export default function HeroSection() {
@@ -20,7 +20,7 @@ export default function HeroSection() {
           <span className="text-accent">{accentWord}</span>
           {parts[1]}
         </h1>
-        <p className="text-body text-text-secondary mt-4 max-w-md mx-auto opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+        <p className="text-body text-text-secondary mt-4 max-w-[320px] md:max-w-md mx-auto opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards', textWrap: 'balance' } as React.CSSProperties}>
           {t('landing_subtitle_v2')}
         </p>
         <Link
@@ -33,9 +33,7 @@ export default function HeroSection() {
         </Link>
       </div>
 
-      <div className="rounded-card overflow-hidden shadow-xl">
-        <ConversationMockup />
-      </div>
+      <PlatformCarousel />
     </section>
   )
 }

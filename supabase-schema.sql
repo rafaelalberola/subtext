@@ -17,13 +17,16 @@ create table if not exists analyses (
   updated_at timestamptz default now()
 );
 
--- RLS policies
+-- RLS policies (drop first for idempotency)
+drop policy if exists "Users can read own analyses" on analyses;
 create policy "Users can read own analyses"
   on analyses for select using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert own analyses" on analyses;
 create policy "Users can insert own analyses"
   on analyses for insert with check (auth.uid() = user_id);
 
+drop policy if exists "Users can delete own analyses" on analyses;
 create policy "Users can delete own analyses"
   on analyses for delete using (auth.uid() = user_id);
 
@@ -41,12 +44,15 @@ create table if not exists user_preferences (
   updated_at timestamptz default now()
 );
 
+drop policy if exists "Users can read own preferences" on user_preferences;
 create policy "Users can read own preferences"
   on user_preferences for select using (auth.uid() = user_id);
 
+drop policy if exists "Users can upsert own preferences" on user_preferences;
 create policy "Users can upsert own preferences"
   on user_preferences for insert with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update own preferences" on user_preferences;
 create policy "Users can update own preferences"
   on user_preferences for update using (auth.uid() = user_id);
 
@@ -66,15 +72,19 @@ create table if not exists people (
 
 alter table people enable row level security;
 
+drop policy if exists "Users can read own people" on people;
 create policy "Users can read own people"
   on people for select using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert own people" on people;
 create policy "Users can insert own people"
   on people for insert with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update own people" on people;
 create policy "Users can update own people"
   on people for update using (auth.uid() = user_id);
 
+drop policy if exists "Users can delete own people" on people;
 create policy "Users can delete own people"
   on people for delete using (auth.uid() = user_id);
 

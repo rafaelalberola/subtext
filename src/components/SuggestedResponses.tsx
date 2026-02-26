@@ -1,20 +1,35 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, ChevronDown, ChevronUp } from 'lucide-react'
+import { Copy, ChevronDown, ChevronUp, Lock, ArrowRight } from 'lucide-react'
 import { SuggestedResponse } from '@/types/analysis'
 import { TonePill } from '@/components/ui/Pill'
 import { useToast } from '@/components/ui/Toast'
+import { useI18n } from '@/lib/i18n'
+import { ALL_TONES } from '@/lib/usage'
+import type { PlanId } from '@/types/subscription'
 
 interface SuggestedResponsesProps {
   responses: SuggestedResponse[]
+  lockedTones?: string[]
+  plan?: PlanId
 }
 
-export default function SuggestedResponses({ responses }: SuggestedResponsesProps) {
+export default function SuggestedResponses({ responses, lockedTones, plan = 'free' }: SuggestedResponsesProps) {
+  // Determine which tones are locked (not present in responses)
+  const returnedTones = responses.map(r => r.tone)
+  const locked = lockedTones || ALL_TONES.filter(t => !returnedTones.includes(t))
+
+  // Determine target upgrade plan
+  const targetPlan: PlanId = plan === 'free' ? 'plus' : 'pro'
+
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {responses.map((response, i) => (
         <ResponseCard key={i} response={response} />
+      ))}
+      {locked.length > 0 && locked.map((tone) => (
+        <LockedResponseCard key={tone} tone={tone as SuggestedResponse['tone']} targetPlan={targetPlan} />
       ))}
     </div>
   )
@@ -23,18 +38,19 @@ export default function SuggestedResponses({ responses }: SuggestedResponsesProp
 function ResponseCard({ response }: { response: SuggestedResponse }) {
   const [expanded, setExpanded] = useState(false)
   const { showToast } = useToast()
+  const { t } = useI18n()
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(response.message)
-      showToast('Copied!')
+      showToast(t('copied'))
     } catch {
-      showToast('Could not copy')
+      showToast(t('copy_failed'))
     }
   }
 
   return (
-    <div className="border border-border rounded-card p-4 space-y-3">
+    <div className="border border-border rounded-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <TonePill tone={response.tone} />
         <button
@@ -42,7 +58,7 @@ function ResponseCard({ response }: { response: SuggestedResponse }) {
           className="flex items-center gap-1.5 text-caption text-text-tertiary hover:text-accent transition-colors min-h-[44px] px-2"
         >
           <Copy size={14} strokeWidth={1.5} />
-          Copy
+          {t('copy')}
         </button>
       </div>
 
@@ -55,12 +71,12 @@ function ResponseCard({ response }: { response: SuggestedResponse }) {
         {expanded ? (
           <>
             <ChevronUp size={14} strokeWidth={1.5} />
-            Less
+            {t('less')}
           </>
         ) : (
           <>
             <ChevronDown size={14} strokeWidth={1.5} />
-            Why this tone?
+            {t('why_this_tone')}
           </>
         )}
       </button>
@@ -70,6 +86,40 @@ function ResponseCard({ response }: { response: SuggestedResponse }) {
           {response.why}
         </p>
       )}
+    </div>
+  )
+}
+
+function LockedResponseCard({ tone, targetPlan }: { tone: SuggestedResponse['tone']; targetPlan: PlanId }) {
+  const { t } = useI18n()
+
+  const upgradeLabel = targetPlan === 'plus' ? t('upgrade_to_plus') : t('upgrade_to_pro')
+
+  const handleUpgrade = () => {
+    // Persist current page state in sessionStorage before navigating
+    sessionStorage.setItem('reveald_return_to', window.location.pathname)
+    window.location.href = '/app/pricing'
+  }
+
+  return (
+    <div className="border border-border rounded-card p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <TonePill tone={tone} />
+        <span className="flex items-center gap-1.5 text-caption text-text-tertiary">
+          <Lock size={12} strokeWidth={1.5} />
+        </span>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="h-4 bg-bg-secondary rounded w-3/4" />
+        <div className="h-4 bg-bg-secondary rounded w-1/2" />
+      </div>
+      <button
+        onClick={handleUpgrade}
+        className="flex items-center justify-center gap-2 text-caption font-medium text-white bg-accent hover:bg-accent-hover rounded-button py-2.5 transition-colors"
+      >
+        {upgradeLabel}
+        <ArrowRight size={14} strokeWidth={1.5} />
+      </button>
     </div>
   )
 }

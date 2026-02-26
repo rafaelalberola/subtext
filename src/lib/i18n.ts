@@ -11,16 +11,8 @@ const translations: Record<Locale, Record<string, string>> = { en, es }
 
 export function detectLocale(): Locale {
   if (typeof window === 'undefined') return 'en'
-  const saved = localStorage.getItem('subtext_locale') as Locale | null
-  if (saved === 'en' || saved === 'es') return saved
   const browserLang = navigator.language || ''
   return browserLang.startsWith('es') ? 'es' : 'en'
-}
-
-export function saveLocale(locale: Locale) {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('subtext_locale', locale)
-  }
 }
 
 export function translate(locale: Locale, key: TranslationKey): string {

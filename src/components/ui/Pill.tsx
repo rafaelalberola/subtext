@@ -1,3 +1,5 @@
+'use client'
+
 interface PillProps {
   label: string
   emoji?: string
@@ -29,17 +31,6 @@ export default function Pill({ label, emoji, color = 'gray', className = '' }: P
       {label}
     </span>
   )
-}
-
-export function ConfidencePill({ confidence }: { confidence: 'very_likely' | 'likely' | 'possible' }) {
-  const config = {
-    very_likely: { label: 'Very likely', color: 'green' as const },
-    likely: { label: 'Likely', color: 'yellow' as const },
-    possible: { label: 'Possible', color: 'orange' as const },
-  }
-
-  const { label, color } = config[confidence]
-  return <Pill label={label} color={color} />
 }
 
 export function TonePill({ tone }: { tone: string }) {

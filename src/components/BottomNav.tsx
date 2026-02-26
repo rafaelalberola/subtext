@@ -12,9 +12,13 @@ const navItems: Array<{ href: string; labelKey: TranslationKey; icon: typeof Hom
   { href: '/app/settings', labelKey: 'nav_settings', icon: Settings },
 ]
 
+const HIDDEN_PATHS = ['/app/pricing']
+
 export default function BottomNav() {
   const pathname = usePathname()
   const { t } = useI18n()
+
+  if (HIDDEN_PATHS.includes(pathname)) return null
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-border safe-bottom z-40">

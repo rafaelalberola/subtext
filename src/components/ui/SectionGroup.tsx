@@ -12,12 +12,12 @@ export default function SectionGroup({
   className = '',
 }: SectionGroupProps) {
   return (
-    <div className={`pt-5 space-y-4 ${className}`}>
+    <div className={`pt-5 flex flex-col gap-4 ${className}`}>
       {title && (
-        <div>
+        <div className="flex flex-col gap-1">
           <h3 className="text-caption text-text-tertiary font-medium uppercase tracking-wider">{title}</h3>
           {description && (
-            <p className="text-caption text-text-secondary mt-1">{description}</p>
+            <p className="text-caption text-text-secondary">{description}</p>
           )}
         </div>
       )}

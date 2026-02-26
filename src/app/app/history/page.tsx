@@ -49,9 +49,9 @@ export default function HistoryPage() {
     return (
       <div>
         <h1 className="text-title text-text-primary mb-6">{t('history_title')}</h1>
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-bg-surface rounded-card p-4 border border-border space-y-3">
+            <div key={i} className="bg-bg-surface rounded-card p-4 border border-border flex flex-col gap-3">
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-3 w-24" />
               <div className="flex gap-2">
@@ -69,13 +69,13 @@ export default function HistoryPage() {
     return (
       <div>
         <h1 className="text-title text-text-primary mb-6">{t('history_title')}</h1>
-        <div className="text-center py-16 space-y-4">
+        <div className="text-center py-16 flex flex-col gap-4">
           <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center mx-auto">
             <LogIn size={24} strokeWidth={1.5} className="text-text-tertiary" />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
             <p className="text-subtitle text-text-primary">{t('history_sign_in')}</p>
-            <p className="text-body text-text-secondary mt-1">
+            <p className="text-body text-text-secondary">
               {t('history_sign_in_subtitle')}
             </p>
           </div>

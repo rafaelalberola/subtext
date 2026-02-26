@@ -38,6 +38,10 @@ const config: Config = {
         'wa-bg': '#ECE5DD',
         'wa-time': '#667781',
         'wa-check': '#53BDEB',
+        'tinder-pink': '#FE3C72',
+        'tinder-orange': '#FF6B6B',
+        'messenger-blue': '#0084FF',
+        'messenger-active': '#31A24C',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
@@ -61,10 +65,10 @@ const config: Config = {
         dialog: '0 8px 32px rgba(0,0,0,0.10)',
       },
       borderRadius: {
-        card: '16px',
-        button: '12px',
-        input: '24px',
-        dialog: '20px',
+        card: '10px',
+        button: '10px',
+        input: '10px',
+        dialog: '10px',
         pill: '9999px',
       },
       spacing: {
@@ -110,6 +114,18 @@ const config: Config = {
           '0%': { opacity: '0', transform: 'scale(0.9)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
+        blink: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
+        'thinking-dot': {
+          '0%, 80%, 100%': { opacity: '0.3', transform: 'scale(0.8)' },
+          '40%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'send-fly': {
+          '0%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+          '100%': { opacity: '0', transform: 'scale(0.6) translateY(-80px)' },
+        },
       },
       animation: {
         'fade-in-up': 'fade-in-up 200ms ease-out forwards',
@@ -121,6 +137,9 @@ const config: Config = {
         'backdrop-in': 'backdrop-in 200ms ease-out forwards',
         'dialog-in': 'dialog-in 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'action-menu-in': 'action-menu-in 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        blink: 'blink 1s step-end infinite',
+        'thinking-dot': 'thinking-dot 1.4s ease-in-out infinite',
+        'send-fly': 'send-fly 400ms ease-in forwards',
       },
     },
   },

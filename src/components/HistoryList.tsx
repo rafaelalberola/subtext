@@ -25,13 +25,13 @@ export default function HistoryList({ analyses, onDelete }: HistoryListProps) {
 
   if (analyses.length === 0) {
     return (
-      <div className="text-center py-16 space-y-4">
-        <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center mx-auto">
+      <div className="text-center py-16 flex flex-col items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center">
           <MessageSquare size={24} strokeWidth={1.5} className="text-text-tertiary" />
         </div>
-        <div>
+        <div className="flex flex-col gap-1">
           <p className="text-subtitle text-text-primary">{t('history_empty_title')}</p>
-          <p className="text-body text-text-secondary mt-1">
+          <p className="text-body text-text-secondary">
             {t('history_empty_subtitle')}
           </p>
         </div>
@@ -41,7 +41,7 @@ export default function HistoryList({ analyses, onDelete }: HistoryListProps) {
 
   return (
     <>
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {analyses.map((item) => {
           const isExpanded = expandedId === item.id
           const signals = item.analysis_json.emotional_signals?.slice(0, 3) || []
@@ -61,7 +61,7 @@ export default function HistoryList({ analyses, onDelete }: HistoryListProps) {
                   onClick={() => setExpandedId(isExpanded ? null : item.id)}
                   className="w-full p-4 pr-14 text-left flex items-start gap-3 min-h-[44px]"
                 >
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
                     <p className="text-body text-text-primary truncate">
                       {item.contact_label && (
                         <span className="text-text-tertiary">{item.contact_label}: </span>
@@ -69,9 +69,9 @@ export default function HistoryList({ analyses, onDelete }: HistoryListProps) {
                       {item.input_text.slice(0, 60)}
                       {item.input_text.length > 60 ? '...' : ''}
                     </p>
-                    <p className="text-caption text-text-tertiary mt-1">{dateStr}</p>
+                    <p className="text-caption text-text-tertiary">{dateStr}</p>
                     {signals.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
+                      <div className="flex flex-wrap gap-1.5 pt-1">
                         {signals.map((signal, i) => (
                           <Pill
                             key={i}
@@ -115,6 +115,7 @@ export default function HistoryList({ analyses, onDelete }: HistoryListProps) {
                     analysis={item.analysis_json}
                     onBack={() => setExpandedId(null)}
                     showSave={false}
+                    contactName={item.contact_label}
                   />
                 </div>
               )}

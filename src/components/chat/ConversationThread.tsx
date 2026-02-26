@@ -1,46 +1,48 @@
 'use client'
 
 import { DecodedPair } from '@/types/analysis'
-import ChatBubble from './ChatBubble'
+import MessageBlock from './MessageBlock'
 import SubtextReveal from './SubtextReveal'
-import { classifySpeakers, groupConsecutiveSpeakers } from './utils'
 
 interface ConversationThreadProps {
   pairs: DecodedPair[]
   showReveals?: boolean
   animated?: boolean
+  contactName?: string
 }
+
+const UNKNOWN_VARIANTS = ['unknown', 'persona desconocida', 'desconocido', 'unknown person']
 
 export default function ConversationThread({
   pairs,
   showReveals = true,
   animated = false,
+  contactName,
 }: ConversationThreadProps) {
-  const speakerMap = classifySpeakers(pairs)
-  const isFirstInGroup = groupConsecutiveSpeakers(pairs)
+  const resolveSpeaker = (speaker?: string) => {
+    if (!speaker) return contactName
+    if (contactName && UNKNOWN_VARIANTS.includes(speaker.toLowerCase())) return contactName
+    return speaker
+  }
 
   return (
-    <div className="bg-wa-bg rounded-card p-4 space-y-3">
+    <div className="flex flex-col gap-5">
+
       {pairs.map((pair, i) => {
-        const side = pair.speaker ? (speakerMap.get(pair.speaker) ?? 'left') : 'left'
-        const showTail = isFirstInGroup[i]
         const bubbleDelay = animated ? 100 + i * 150 : 0
         const revealDelay = animated ? bubbleDelay + 300 : 0
 
         return (
-          <div key={i} className="space-y-1.5">
-            <ChatBubble
+          <div key={i} className="flex flex-col">
+            <MessageBlock
               text={pair.said}
-              side={side}
-              showTail={showTail}
-              speaker={pair.speaker}
+              speaker={resolveSpeaker(pair.speaker)}
               animated={animated}
               delay={bubbleDelay}
             />
             <SubtextReveal
               meant={pair.meant}
-              confidence={pair.confidence}
-              side={side}
+              side="left"
               visible={showReveals}
               animated={animated}
               delay={revealDelay}

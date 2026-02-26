@@ -1,48 +1,75 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, DragEvent } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, DragEvent } from 'react'
 import { Camera, X, Sparkles } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
 
 const MAX_CHARS = 5000
+const TYPING_SPEED = 45
+const PAUSE_AFTER_TYPED = 2500
 
 interface ConversationInputProps {
   onSubmit: (data: { text?: string; screenshot?: string }) => void
   isLoading: boolean
+  remaining?: number
+  total?: number
 }
 
-export default function ConversationInput({ onSubmit, isLoading }: ConversationInputProps) {
+export default function ConversationInput({ onSubmit, isLoading, remaining, total }: ConversationInputProps) {
   const { t } = useI18n()
   const [text, setText] = useState('')
   const [screenshot, setScreenshot] = useState<string | null>(null)
   const [screenshotName, setScreenshotName] = useState<string>('')
-  const [placeholderIndex, setPlaceholderIndex] = useState(0)
-  const [placeholderVisible, setPlaceholderVisible] = useState(true)
+  const [typedPlaceholder, setTypedPlaceholder] = useState('')
+  const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const placeholders = [
+  const placeholders = useMemo(() => [
     t('placeholder_1'),
     t('placeholder_2'),
     t('placeholder_3'),
     t('placeholder_4'),
-  ]
+  ], [t])
 
-  // Rotate placeholders
+  // Typewriter effect — only runs when textarea is empty
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderVisible(false)
-      setTimeout(() => {
-        setPlaceholderIndex((prev) => (prev + 1) % placeholders.length)
-        setPlaceholderVisible(true)
-      }, 200)
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [placeholders.length])
+    if (text.length > 0) {
+      setTypedPlaceholder('')
+      return
+    }
+
+    const target = placeholders[placeholderIdx]
+    let i = 0
+    setTypedPlaceholder('')
+
+    const typeTimer = setInterval(() => {
+      i++
+      if (i <= target.length) {
+        setTypedPlaceholder(target.slice(0, i))
+      } else {
+        clearInterval(typeTimer)
+      }
+    }, TYPING_SPEED)
+
+    // After enough time for typing + pause, move to next
+    const nextTimer = setTimeout(() => {
+      setPlaceholderIdx((prev) => (prev + 1) % placeholders.length)
+    }, target.length * TYPING_SPEED + PAUSE_AFTER_TYPED)
+
+    return () => {
+      clearInterval(typeTimer)
+      clearTimeout(nextTimer)
+    }
+  }, [placeholderIdx, text.length > 0, placeholders])
+
+  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value.slice(0, MAX_CHARS))
+  }, [])
 
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return
-
     const reader = new FileReader()
     reader.onload = (e) => {
       setScreenshot(e.target?.result as string)
@@ -80,6 +107,15 @@ export default function ConversationInput({ onSubmit, isLoading }: ConversationI
   const showCharCount = charPercent >= 80
   const hasContent = text.trim().length > 0 || screenshot !== null
 
+  // Usage color
+  const getUsageColor = () => {
+    if (remaining === undefined || total === undefined || total === 0) return 'text-text-tertiary'
+    const pct = remaining / total
+    if (pct > 0.5) return 'text-success'
+    if (pct > 0.25) return 'text-warning'
+    return 'text-danger'
+  }
+
   return (
     <div
       className={`
@@ -94,28 +130,26 @@ export default function ConversationInput({ onSubmit, isLoading }: ConversationI
       {/* Textarea area */}
       <div className="relative">
         <textarea
+          ref={textareaRef}
           value={text}
-          onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
+          onChange={handleTextChange}
           rows={4}
-          className="w-full px-5 pt-4 pb-2 bg-transparent text-body text-text-primary resize-none focus:outline-none"
+          className="w-full px-5 pt-4 pb-2 bg-transparent text-body text-text-primary resize-none focus:outline-none relative z-10"
           disabled={isLoading}
         />
-        {/* Custom placeholder with fade animation */}
-        {!text && (
+        {/* Typewriter placeholder — hidden when user has typed anything */}
+        {text.length === 0 && typedPlaceholder && (
           <div
-            className={`
-              absolute top-4 left-5 right-5 pointer-events-none
-              text-body text-text-tertiary
-              transition-opacity duration-200
-              ${placeholderVisible ? 'opacity-100' : 'opacity-0'}
-            `}
+            className="absolute top-4 left-5 right-5 pointer-events-none text-body text-text-tertiary z-0"
+            aria-hidden="true"
           >
-            {placeholders[placeholderIndex]}
+            {typedPlaceholder}
+            <span className="inline-block w-[2px] h-[1em] bg-text-tertiary/40 ml-[1px] align-text-bottom animate-blink" />
           </div>
         )}
       </div>
 
-      {/* Screenshot preview (inside container) */}
+      {/* Screenshot preview */}
       {screenshot && (
         <div className="mx-4 mb-2 flex items-center gap-3 p-2 bg-bg-secondary rounded-lg">
           <img
@@ -149,12 +183,19 @@ export default function ConversationInput({ onSubmit, isLoading }: ConversationI
           <Camera size={18} strokeWidth={1.5} className="text-text-tertiary" />
         </button>
 
-        {/* Center: character count */}
-        {showCharCount && (
-          <span className={`text-caption ${charPercent >= 100 ? 'text-accent font-medium' : 'text-text-tertiary'}`}>
-            {text.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
-          </span>
-        )}
+        {/* Center: usage counter or character count */}
+        <div className="flex items-center gap-2">
+          {showCharCount && (
+            <span className={`text-caption ${charPercent >= 100 ? 'text-accent font-medium' : 'text-text-tertiary'}`}>
+              {text.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
+            </span>
+          )}
+          {remaining !== undefined && !showCharCount && (
+            <span className={`text-caption font-medium ${getUsageColor()}`}>
+              {remaining} {t('usage_remaining')}
+            </span>
+          )}
+        </div>
 
         {/* Right: submit pill */}
         <button

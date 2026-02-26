@@ -9,11 +9,11 @@ export default function ClosingCTA() {
 
   return (
     <section className="py-12">
-      <div className="border-2 border-accent/20 rounded-card p-8 text-center">
+      <div className="border-2 border-accent/20 rounded-card py-8 px-4 text-center">
         <h2 className="font-serif text-display-sm text-text-primary leading-tight">
-          {t('closing_cta_title')}
+          {t('closing_cta_title_1')}<br />{t('closing_cta_title_2')}
         </h2>
-        <p className="text-body text-text-secondary mt-2 max-w-md mx-auto">
+        <p className="text-body text-text-secondary mt-2 max-w-[320px] md:max-w-md mx-auto" style={{ textWrap: 'balance' } as React.CSSProperties}>
           {t('closing_cta_subtitle')}
         </p>
         <Link

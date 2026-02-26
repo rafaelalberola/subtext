@@ -38,10 +38,10 @@ export default function UseCases() {
 
   return (
     <section className="py-12">
-      <h2 className="font-serif text-display-sm text-text-primary text-center mb-8">
+      <h2 className="font-serif text-display-sm text-text-primary text-center mb-8" style={{ textWrap: 'balance' } as React.CSSProperties}>
         {t('use_cases_title')}
       </h2>
-      <div className="space-y-5">
+      <div className="flex flex-col gap-5">
         {cases.map((c, i) => {
           const Icon = c.icon
           return (
@@ -50,28 +50,32 @@ export default function UseCases() {
                 <div className={`w-9 h-9 rounded-full ${c.bg} flex items-center justify-center`}>
                   <Icon size={18} className={c.color} strokeWidth={1.5} />
                 </div>
-                <div className="text-center">
+                <div className="text-center flex flex-col gap-1">
                   <h3 className="text-subtitle text-text-primary leading-tight">
                     {t(c.titleKey as any)}
                   </h3>
-                  <p className="text-caption text-text-secondary">
+                  <p className="text-caption text-text-secondary" style={{ textWrap: 'balance' } as React.CSSProperties}>
                     {t(c.descKey as any)}
                   </p>
                 </div>
               </div>
 
-              {/* Mini bubble + reveal */}
-              <div className="bg-wa-bg rounded-lg p-3">
-                <div className="bg-white rounded-lg px-3 py-2 shadow-sm max-w-[85%]">
-                  <span className="text-[13px] text-[#111B21]">
-                    {t(c.msgKey as any)}
-                  </span>
-                </div>
-                <div className="ml-3 mt-1.5 pl-2.5 border-l-2 border-accent">
-                  <span className="text-[11px] text-accent font-medium uppercase tracking-wide">Subtext</span>
-                  <p className="text-[12px] leading-[1.4] text-text-primary mt-0.5">
-                    {t(c.revealKey as any)}
-                  </p>
+              {/* Mini bubble + reveal - connected */}
+              <div className="bg-[#f1efeb] rounded-card pt-6 pr-6 pb-6 pl-4 min-h-[120px] flex items-start">
+                <div className="ml-2 flex flex-col w-full">
+                  {/* Bubble with tail */}
+                  <div className="relative bg-white rounded-lg rounded-tl-none rounded-b-none pt-2 pr-6 pb-2 pl-4 shadow-sm bubble-tail-left">
+                    <span className="text-[13px] text-[#111B21]">
+                      {t(c.msgKey as any)}
+                    </span>
+                  </div>
+                  {/* Reveal - connected directly below bubble */}
+                  <div className="bubble-glass rounded-b-lg px-3 py-2 flex flex-col gap-0.5">
+                    <span className="text-[11px] text-accent font-semibold uppercase tracking-wider">{t('reveal_question')}</span>
+                    <p className="text-[12px] leading-[1.4] text-text-secondary">
+                      {t(c.revealKey as any)}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

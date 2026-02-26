@@ -4,13 +4,13 @@ import { Search } from 'lucide-react'
 export default function NotFound() {
   return (
     <main className="min-h-screen flex items-center justify-center p-section">
-      <div className="max-w-md text-center space-y-4">
+      <div className="max-w-md text-center flex flex-col items-center gap-4">
         <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center mx-auto">
           <Search size={24} strokeWidth={1.5} className="text-text-tertiary" />
         </div>
         <h1 className="text-title text-text-primary">Page not found</h1>
         <p className="text-body text-text-secondary">
-          Looks like this page doesn&apos;t have any subtext — because it doesn&apos;t exist.
+          Looks like this page doesn&apos;t have any subtext... because it doesn&apos;t exist.
         </p>
         <Link
           href="/app"

@@ -1,21 +1,22 @@
 'use client'
 
-import { useState } from 'react'
-import { ArrowLeft, RotateCcw, Bookmark } from 'lucide-react'
+import { ArrowLeft, Bookmark } from 'lucide-react'
 import { AnalysisResult } from '@/types/analysis'
 import Card from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
 import ConversationThread from '@/components/chat/ConversationThread'
-import XRayToggle from '@/components/chat/XRayToggle'
 import EmotionalSignals from '@/components/EmotionalSignals'
 import SuggestedResponses from '@/components/SuggestedResponses'
 import { useI18n } from '@/lib/i18n'
+import { getAllowedTones, ALL_TONES } from '@/lib/usage'
+import type { PlanId } from '@/types/subscription'
 
 interface AnalysisResultsProps {
   analysis: AnalysisResult
   onBack: () => void
   onSave?: () => void
   showSave?: boolean
+  plan?: PlanId
+  contactName?: string
 }
 
 export default function AnalysisResults({
@@ -23,12 +24,13 @@ export default function AnalysisResults({
   onBack,
   onSave,
   showSave = true,
+  plan = 'free',
+  contactName,
 }: AnalysisResultsProps) {
   const { t } = useI18n()
-  const [xrayEnabled, setXrayEnabled] = useState(true)
 
   return (
-    <div className="space-y-card-gap">
+    <div className="flex flex-col gap-card-gap">
       {/* Back button */}
       <button
         onClick={onBack}
@@ -46,46 +48,49 @@ export default function AnalysisResults({
       </div>
 
       {/* Decoded conversation */}
-      <div className="opacity-0 animate-fade-in-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-subtitle text-text-primary">
-            {t('card_decoded_title')}
-          </h2>
-          <XRayToggle enabled={xrayEnabled} onChange={setXrayEnabled} />
+      <div className="opacity-0 animate-fade-in-up flex flex-col gap-3" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+        <h2 className="text-subtitle text-text-primary">
+          {t('card_decoded_title')}
+        </h2>
+        <div className="rounded-card bg-[#f1efeb] p-3">
+          <ConversationThread
+            pairs={analysis.decoded_pairs}
+            showReveals={true}
+            animated
+            contactName={contactName}
+          />
         </div>
-        <ConversationThread
-          pairs={analysis.decoded_pairs}
-          showReveals={xrayEnabled}
-          animated
-        />
       </div>
 
       {/* Card 2: Emotional signals */}
-      <Card animated delay={250}>
-        <h2 className="text-subtitle text-text-primary mb-4">
+      <Card animated delay={250} className="flex flex-col gap-4">
+        <h2 className="text-subtitle text-text-primary">
           {t('card_signals_title')}
         </h2>
         <EmotionalSignals signals={analysis.emotional_signals} />
       </Card>
 
       {/* Card 3: Suggested responses */}
-      <Card animated delay={400}>
-        <h2 className="text-subtitle text-text-primary mb-4">
+      <Card animated delay={400} className="flex flex-col gap-4">
+        <h2 className="text-subtitle text-text-primary">
           {t('card_responses_title')}
         </h2>
-        <SuggestedResponses responses={analysis.suggested_responses} />
+        <SuggestedResponses
+          responses={analysis.suggested_responses}
+          lockedTones={plan === 'free'
+            ? ALL_TONES.filter(t => !getAllowedTones(plan).includes(t))
+            : undefined
+          }
+          plan={plan}
+        />
       </Card>
 
-      {/* Bottom actions */}
-      <div
-        className="flex flex-col gap-3 pt-2 opacity-0 animate-fade-in-up"
-        style={{ animationDelay: '550ms', animationFillMode: 'forwards' }}
-      >
-        <Button variant="secondary" fullWidth onClick={onBack}>
-          <RotateCcw size={16} strokeWidth={1.5} />
-          {t('analyze_another')}
-        </Button>
-        {showSave && onSave && (
+      {/* Save action */}
+      {showSave && onSave && (
+        <div
+          className="flex flex-col gap-3 pt-2 opacity-0 animate-fade-in-up"
+          style={{ animationDelay: '550ms', animationFillMode: 'forwards' }}
+        >
           <button
             onClick={onSave}
             className="flex items-center justify-center gap-2 text-body text-text-tertiary hover:text-accent transition-colors py-3"
@@ -93,8 +98,8 @@ export default function AnalysisResults({
             <Bookmark size={16} strokeWidth={1.5} />
             {t('save_analysis')}
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

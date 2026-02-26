@@ -2,7 +2,7 @@ export interface DecodedPair {
   speaker?: string
   said: string
   meant: string
-  confidence: 'very_likely' | 'likely' | 'possible'
+  confidence: number
 }
 
 export interface EmotionalSignal {
