@@ -11,7 +11,7 @@ import type { PlanId } from '@/types/subscription'
 
 interface SuggestedResponsesProps {
   responses: SuggestedResponse[]
-  lockedTones?: string[]
+  lockedTones?: SuggestedResponse['tone'][]
   plan?: PlanId
 }
 
