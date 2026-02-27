@@ -8,6 +8,7 @@ import ActionMenu from '@/components/ui/ActionMenu'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import AnalysisResults from '@/components/AnalysisResults'
 import { useI18n } from '@/lib/i18n'
+import type { PlanId } from '@/types/subscription'
 
 const signalColors: Array<'blue' | 'purple' | 'pink' | 'orange' | 'green' | 'yellow'> = [
   'blue', 'purple', 'pink', 'orange', 'green', 'yellow',
@@ -16,9 +17,10 @@ const signalColors: Array<'blue' | 'purple' | 'pink' | 'orange' | 'green' | 'yel
 interface HistoryListProps {
   analyses: SavedAnalysis[]
   onDelete: (id: string) => void
+  plan?: PlanId
 }
 
-export default function HistoryList({ analyses, onDelete }: HistoryListProps) {
+export default function HistoryList({ analyses, onDelete, plan = 'free' }: HistoryListProps) {
   const { t } = useI18n()
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
@@ -114,7 +116,7 @@ export default function HistoryList({ analyses, onDelete }: HistoryListProps) {
                   <AnalysisResults
                     analysis={item.analysis_json}
                     onBack={() => setExpandedId(null)}
-                    showSave={false}
+                    plan={plan}
                     contactName={item.contact_label}
                     inputText={item.input_text}
                     createdAt={item.created_at}

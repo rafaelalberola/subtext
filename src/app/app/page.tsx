@@ -7,15 +7,15 @@ import AnalysisResults from '@/components/AnalysisResults'
 import AuthPrompt from '@/components/AuthPrompt'
 import PersonSelector from '@/components/PersonSelector'
 import AddPersonForm from '@/components/AddPersonForm'
-import PersonHeader from '@/components/chat/PersonHeader'
 import UpgradePrompt, { LowUsageBanner } from '@/components/UpgradePrompt'
-import Skeleton, { AnalysisSkeleton } from '@/components/ui/Skeleton'
+import Skeleton, { ThinkingIndicator } from '@/components/ui/Skeleton'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { useI18n } from '@/lib/i18n'
 import { useSubscription } from '@/lib/subscription-context'
-import { AlertCircle, Sparkles } from 'lucide-react'
+import { AlertCircle, Gift, Sparkles, X } from 'lucide-react'
 import { PERSON_CONTEXT_PREFIX } from '@/lib/prompts'
+import { useSidebar } from '@/components/AppShell'
 import type { User } from '@supabase/supabase-js'
 
 type AppView = 'input' | 'loading' | 'results'
@@ -33,7 +33,6 @@ export default function AppPage() {
   const [peopleLoading, setPeopleLoading] = useState(true)
   const [people, setPeople] = useState<Person[]>([])
   const [selectedPersonForContext, setSelectedPersonForContext] = useState<Person | null>(null)
-  const [showPersonSelector, setShowPersonSelector] = useState(false)
   const [showPersonPicker, setShowPersonPicker] = useState(false)
   const [showUpgrade, setShowUpgrade] = useState(false)
   const [showAddPerson, setShowAddPerson] = useState(false)
@@ -41,8 +40,15 @@ export default function AppPage() {
   const { showToast } = useToast()
   const { t } = useI18n()
   const { usage, loading: usageLoading, refreshUsage } = useSubscription()
+  const { setHideChrome } = useSidebar()
 
   const supabase = createClient()
+
+  // Hide bottom nav and input during analysis
+  useEffect(() => {
+    setHideChrome(view !== 'input')
+    return () => setHideChrome(false)
+  }, [view, setHideChrome])
 
   useEffect(() => {
     try {
@@ -100,7 +106,7 @@ export default function AppPage() {
     }
   }
 
-  const handleSubmit = async (data: { text?: string; screenshot?: string }) => {
+  const handleSubmit = (data: { text?: string; screenshot?: string }): boolean => {
     // If no person selected, prompt to select or create one
     if (!selectedPersonForContext) {
       setPendingSubmitData(data)
@@ -109,13 +115,15 @@ export default function AppPage() {
       } else {
         setShowPersonPicker(true)
       }
-      return
+      return false // keep input text
     }
 
-    await runAnalysis(data)
+    runAnalysis(data)
+    return true // clear input
   }
 
-  const runAnalysis = async (data: { text?: string; screenshot?: string }) => {
+  const runAnalysis = async (data: { text?: string; screenshot?: string }, person?: Person | null) => {
+    const activePerson = person ?? selectedPersonForContext
     setView('loading')
     setError(null)
     setInputText(data.text || '[Screenshot]')
@@ -124,11 +132,11 @@ export default function AppPage() {
     try {
       let personContext: string | undefined
 
-      if (selectedPersonForContext) {
+      if (activePerson) {
         const { data: pastAnalyses } = await supabase
           .from('analyses')
           .select('analysis_json')
-          .eq('person_id', selectedPersonForContext.id)
+          .eq('person_id', activePerson.id)
           .order('created_at', { ascending: false })
           .limit(5)
 
@@ -136,7 +144,7 @@ export default function AppPage() {
           const summaries = pastAnalyses.map(
             (a: { analysis_json: AnalysisResult }) => a.analysis_json.overall_read
           )
-          personContext = PERSON_CONTEXT_PREFIX(selectedPersonForContext.name, summaries)
+          personContext = PERSON_CONTEXT_PREFIX(activePerson.name, summaries)
         }
       }
 
@@ -158,6 +166,24 @@ export default function AppPage() {
       setAnalysis(result)
       setView('results')
       refreshUsage()
+
+      // Auto-save to the selected person
+      if (activePerson && user) {
+        const savedText = data.text || '[Screenshot]'
+        const savedType = data.screenshot ? 'screenshot' : 'text'
+        const { error: saveError } = await supabase.from('analyses').insert({
+          user_id: user.id,
+          input_text: savedText,
+          input_type: savedType,
+          analysis_json: result,
+          language: result.language,
+          person_id: activePerson.id,
+          contact_label: activePerson.name,
+        })
+        if (saveError) {
+          showToast(t('save_failed'))
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setView('input')
@@ -170,32 +196,6 @@ export default function AppPage() {
     sessionStorage.removeItem(ANALYSIS_STORAGE_KEY)
   }
 
-  const handleSave = async () => {
-    if (!user || !analysis) return
-    setShowPersonSelector(true)
-  }
-
-  const handleSaveWithPerson = async (person: Person) => {
-    setShowPersonSelector(false)
-    if (!analysis || !user) return
-
-    const { error } = await supabase.from('analyses').insert({
-      user_id: user.id,
-      input_text: inputText,
-      input_type: inputType,
-      analysis_json: analysis,
-      language: analysis.language,
-      person_id: person.id,
-      contact_label: person.name,
-    })
-
-    if (error) {
-      showToast(t('save_failed'))
-    } else {
-      showToast(t('saved'))
-      loadPeople()
-    }
-  }
 
   useEffect(() => {
     if (view === 'results' && analysis) persistAnalysis()
@@ -211,7 +211,7 @@ export default function AppPage() {
     return (
       <div
         className="flex flex-col items-center justify-center text-center"
-        style={{ minHeight: 'calc(100vh - 280px)' }}
+        style={{ minHeight: 'calc(100vh - 336px)' }}
       >
         <div className="flex flex-col items-center gap-3">
           <Skeleton className="w-12 h-12 rounded-full" />
@@ -225,15 +225,18 @@ export default function AppPage() {
   // Auth prompt
   if (!user) {
     return (
-      <div className="flex flex-col gap-6 animate-fade-in">
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-6 animate-fade-in">
         <div className="pt-4 text-center flex flex-col gap-2">
           <h1 className="font-serif text-display text-text-primary">{t('app_name')}</h1>
-          <p className="text-body text-text-secondary max-w-md mx-auto">{t('main_subtitle')}</p>
+          <p className="text-body text-text-secondary max-w-md mx-auto">{t('main_subtitle_1')}<br />{t('main_subtitle_2')}</p>
         </div>
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-center gap-2 bg-success-bg rounded-card px-4 py-3">
-            <span className="text-success text-body">✓</span>
-            <p className="text-body text-success-text font-medium">{t('auth_required_subtitle')}</p>
+          <div className="flex items-start gap-3 bg-success-bg rounded-card px-4 py-3">
+            <Gift size={18} strokeWidth={1.5} className="text-success-text mt-0.5 flex-shrink-0" />
+            <div className="flex flex-col gap-1">
+              <p className="text-body text-success-text font-semibold">{t('auth_required_title')}</p>
+              <p className="text-caption text-success-text">{t('auth_required_subtitle')}</p>
+            </div>
           </div>
           <AuthPrompt />
         </div>
@@ -248,46 +251,43 @@ export default function AppPage() {
         <>
           <div
             className="flex flex-col items-center justify-center text-center"
-            style={{ minHeight: 'calc(100vh - 280px)' }}
+            style={{ minHeight: 'calc(100vh - 336px)' }}
           >
             <div className="flex flex-col items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center">
                 <Sparkles size={24} strokeWidth={1.5} className="text-text-tertiary" />
               </div>
               <h1 className="font-serif text-display text-text-primary">{t('app_name')}</h1>
-              <p className="text-body text-text-secondary max-w-[16rem]">{t('main_subtitle')}</p>
+              <p className="text-body text-text-secondary max-w-[16rem]">{t('main_subtitle_1')}<br />{t('main_subtitle_2')}</p>
             </div>
 
             {/* Person selector */}
-            {user && (
-              <div className="mt-8 w-full">
-                {selectedPersonForContext ? (
-                  <PersonHeader
-                    person={selectedPersonForContext}
-                    onChangePress={() => setShowPersonPicker(true)}
-                  />
-                ) : people.length > 0 ? (
-                  <div className="flex flex-col gap-2 items-center">
-                    <p className="text-caption text-text-secondary">{t('analyzing_conversation_with')}</p>
-                    <div className="flex gap-2 flex-wrap justify-center">
-                      {people.map((p) => (
-                        <button
-                          key={p.id}
-                          onClick={() => setSelectedPersonForContext(p)}
-                          className="px-3 py-1.5 rounded-full text-caption flex items-center gap-1.5 border transition-all border-border text-text-tertiary hover:border-text-tertiary"
-                        >
-                          <span>{p.avatar_emoji}</span>
-                          {p.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
+            {user && people.length > 0 && (
+              <div className="mt-8 w-full flex flex-col gap-2 items-center">
+                <p className="text-caption text-text-secondary">{t('analyzing_conversation_with')}</p>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {people.map((p) => {
+                    const isSelected = selectedPersonForContext?.id === p.id
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => isSelected ? setSelectedPersonForContext(null) : setSelectedPersonForContext(p)}
+                        className={`px-3 py-1.5 rounded-full text-caption flex items-center gap-1.5 border transition-all ${
+                          isSelected
+                            ? 'bg-accent text-white border-accent'
+                            : 'border-border text-text-tertiary hover:border-text-tertiary'
+                        }`}
+                      >
+                        {p.name}
+                        {isSelected && <X size={14} strokeWidth={2} />}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             )}
           </div>
 
-          {usage && usage.remaining === 1 && <LowUsageBanner />}
         </>
       )}
 
@@ -298,14 +298,12 @@ export default function AppPage() {
         </div>
       )}
 
-      {view === 'loading' && <AnalysisSkeleton />}
+      {view === 'loading' && <ThinkingIndicator />}
 
       {view === 'results' && analysis && (
         <AnalysisResults
           analysis={analysis}
           onBack={handleBack}
-          onSave={handleSave}
-          showSave={true}
           plan={usage?.plan || 'free'}
           contactName={selectedPersonForContext?.name}
           inputText={inputText}
@@ -313,12 +311,13 @@ export default function AppPage() {
       )}
 
       {/* Sticky compact input */}
-      {user && view !== 'loading' && (
+      {user && view === 'input' && (
         <CompactInput
           onSubmit={handleSubmit}
           isLoading={false}
           remaining={remaining}
           total={total}
+          banner={usage && usage.remaining === 1 ? <LowUsageBanner /> : undefined}
         />
       )}
 
@@ -332,17 +331,11 @@ export default function AppPage() {
             if (pendingSubmitData) {
               const data = pendingSubmitData
               setPendingSubmitData(null)
-              setTimeout(() => runAnalysis(data), 0)
+              setTimeout(() => runAnalysis(data, person), 0)
             }
           }}
         />
       )}
-
-      <PersonSelector
-        open={showPersonSelector}
-        onClose={() => setShowPersonSelector(false)}
-        onSelect={handleSaveWithPerson}
-      />
 
       <UpgradePrompt
         open={showUpgrade}
@@ -352,12 +345,12 @@ export default function AppPage() {
       <AddPersonForm
         open={showAddPerson}
         onClose={() => { setShowAddPerson(false); setPendingSubmitData(null) }}
-        onSave={async (name, emoji) => {
+        onSave={async (name) => {
           setShowAddPerson(false)
           if (!user) return
           const { data: newPerson, error } = await supabase
             .from('people')
-            .insert({ user_id: user.id, name, avatar_emoji: emoji })
+            .insert({ user_id: user.id, name })
             .select()
             .single()
           if (error || !newPerson) {
@@ -371,7 +364,7 @@ export default function AppPage() {
           if (pendingSubmitData) {
             const data = pendingSubmitData
             setPendingSubmitData(null)
-            setTimeout(() => runAnalysis(data), 0)
+            setTimeout(() => runAnalysis(data, person), 0)
           }
         }}
       />

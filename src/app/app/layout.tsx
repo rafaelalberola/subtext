@@ -1,4 +1,7 @@
 import BottomNav from '@/components/BottomNav'
+import DesktopSidebar from '@/components/DesktopSidebar'
+import AppShell from '@/components/AppShell'
+import AppContent from '@/components/AppContent'
 import { ToastProvider } from '@/components/ui/Toast'
 import I18nProvider from '@/components/I18nProvider'
 import { SubscriptionProvider } from '@/lib/subscription-context'
@@ -14,12 +17,11 @@ export default function AppLayout({
     <I18nProvider>
       <ToastProvider>
         <SubscriptionProvider>
-          <div className="min-h-screen bg-bg-primary pb-44">
-            <main className="max-w-2xl mx-auto px-section pt-8">
-              {children}
-            </main>
+          <AppShell>
+            <DesktopSidebar />
+            <AppContent>{children}</AppContent>
             <BottomNav />
-          </div>
+          </AppShell>
         </SubscriptionProvider>
       </ToastProvider>
     </I18nProvider>

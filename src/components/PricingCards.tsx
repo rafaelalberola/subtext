@@ -12,6 +12,8 @@ interface PricingCardsProps {
   billingInterval: BillingInterval
   onSelectPlan: (plan: PlanId, interval: BillingInterval) => void
   disabled?: boolean
+  /** Landing mode: show CTA on all plans with "Start now" text */
+  landingMode?: boolean
 }
 
 const plans: Array<{
@@ -34,6 +36,7 @@ export default function PricingCards({
   billingInterval,
   onSelectPlan,
   disabled = false,
+  landingMode = false,
 }: PricingCardsProps) {
   const { t } = useI18n()
 
@@ -101,11 +104,11 @@ export default function PricingCards({
               ))}
             </ul>
 
-            {isCurrent ? (
+            {isCurrent && !landingMode ? (
               <p className="text-center text-caption text-text-tertiary font-medium py-2">
                 {t('current_plan')}
               </p>
-            ) : plan.id === 'free' ? (
+            ) : !landingMode && plan.id === 'free' ? (
               <div />
             ) : (
               <button
@@ -117,7 +120,7 @@ export default function PricingCards({
                 onClick={() => onSelectPlan(plan.id, billingInterval)}
                 disabled={disabled}
               >
-                {t('upgrade_to')} {t(plan.nameKey)}
+                {landingMode ? t('cta_start_now') : `${t('upgrade_to')} ${t(plan.nameKey)}`}
               </button>
             )}
           </div>

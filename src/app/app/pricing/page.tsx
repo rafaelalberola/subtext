@@ -65,47 +65,48 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8 pb-8">
+    <div className="flex flex-col gap-6 pb-8">
       <PageHeader
         onBack={() => window.history.back()}
         title={t('pricing_title')}
-        subtitle={`${t('pricing_subtitle_1')} ${t('pricing_subtitle_2')}`}
       />
 
-      {/* Toggle */}
-      <BillingToggle interval={billingInterval} onChange={setBillingInterval} />
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-6">
+        {/* Toggle */}
+        <BillingToggle interval={billingInterval} onChange={setBillingInterval} />
 
-      {/* Plans */}
-      <PricingCards
-        currentPlan={currentPlan}
-        billingInterval={billingInterval}
-        onSelectPlan={handleSelectPlan}
-        disabled={loading}
-      />
+        {/* Plans */}
+        <PricingCards
+          currentPlan={currentPlan}
+          billingInterval={billingInterval}
+          onSelectPlan={handleSelectPlan}
+          disabled={loading}
+        />
 
-      {/* Credits */}
-      <CreditPacks onBuy={handleBuyCredits} disabled={loading} />
+        {/* Credits */}
+        <CreditPacks onBuy={handleBuyCredits} disabled={loading} />
 
-      {/* FAQ */}
-      <div>
-        <h3 className="text-subtitle text-text-primary mb-4">{t('faq_title')}</h3>
-        <div className="flex flex-col gap-2">
-          <FAQItem
-            question={t('faq_cancel_q')}
-            answer={t('faq_cancel_a')}
-          />
-          <FAQItem
-            question={t('faq_credits_q')}
-            answer={t('faq_credits_a')}
-          />
-          <FAQItem
-            question={t('faq_switch_q')}
-            answer={t('faq_switch_a')}
-          />
-          <FAQItem
-            question={t('faq_run_out_q')}
-            answer={t('faq_run_out_a')}
-          />
+        {/* FAQ */}
+        <div>
+          <h3 className="text-subtitle text-text-primary mb-4">{t('faq_title')}</h3>
+          <div className="flex flex-col gap-2">
+            <FAQItem
+              question={t('faq_cancel_q')}
+              answer={t('faq_cancel_a')}
+            />
+            <FAQItem
+              question={t('faq_credits_q')}
+              answer={t('faq_credits_a')}
+            />
+            <FAQItem
+              question={t('faq_switch_q')}
+              answer={t('faq_switch_a')}
+            />
+            <FAQItem
+              question={t('faq_run_out_q')}
+              answer={t('faq_run_out_a')}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -5,51 +5,30 @@ import BottomSheet from '@/components/ui/BottomSheet'
 import Button from '@/components/ui/Button'
 import { useI18n } from '@/lib/i18n'
 
-const EMOJI_OPTIONS = ['👤', '😊', '😎', '🥰', '🤔', '😈', '👩', '👨', '🧑', '💼', '❤️', '⭐']
-
 interface AddPersonFormProps {
   open: boolean
   onClose: () => void
-  onSave: (name: string, emoji: string) => void
+  onSave: (name: string) => void
 }
 
 export default function AddPersonForm({ open, onClose, onSave }: AddPersonFormProps) {
   const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState('👤')
   const { t } = useI18n()
 
   const handleSubmit = () => {
     if (!name.trim()) return
-    onSave(name.trim(), emoji)
+    onSave(name.trim())
     setName('')
-    setEmoji('👤')
   }
 
   const handleClose = () => {
     setName('')
-    setEmoji('👤')
     onClose()
   }
 
   return (
     <BottomSheet open={open} onClose={handleClose} title={t('add_person_title')}>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label className="text-caption text-text-secondary">{t('choose_emoji')}</label>
-          <div className="flex flex-wrap gap-[.9rem]">
-            {EMOJI_OPTIONS.map((e) => (
-              <button
-                key={e}
-                onClick={() => setEmoji(e)}
-                className={`w-11 h-11 rounded-full flex items-center justify-center text-xl transition-all
-                  ${emoji === e ? 'bg-accent/10 ring-2 ring-accent' : 'bg-bg-secondary hover:bg-border'}`}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
-        </div>
-
+      <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <label className="text-caption text-text-secondary">{t('person_name')}</label>
           <input
@@ -66,7 +45,7 @@ export default function AddPersonForm({ open, onClose, onSave }: AddPersonFormPr
         </div>
 
         <Button variant="primary" fullWidth onClick={handleSubmit} disabled={!name.trim()}>
-          {t('add_person')}
+          {t('save_analysis')}
         </Button>
       </div>
     </BottomSheet>

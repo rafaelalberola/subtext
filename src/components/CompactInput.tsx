@@ -3,17 +3,21 @@
 import { useState, useRef, useCallback, DragEvent } from 'react'
 import { Plus, X, ArrowUp } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
+import { useSidebar } from '@/components/AppShell'
 
 const MAX_CHARS = 5000
-const FLY_DURATION = 400
+const FLY_DURATION = 700
 
 interface CompactInputProps {
-  onSubmit: (data: { text?: string; screenshot?: string }) => void
+  /** Return true to clear the input, false to keep it (e.g. when deferred) */
+  onSubmit: (data: { text?: string; screenshot?: string }) => boolean
   isLoading: boolean
   remaining?: number
   total?: number
   /** Enable flying text animation on submit (used in person detail) */
   animateSend?: boolean
+  /** Optional banner rendered above the input with 12px gap */
+  banner?: React.ReactNode
 }
 
 export default function CompactInput({
@@ -22,8 +26,10 @@ export default function CompactInput({
   remaining,
   total,
   animateSend = false,
+  banner,
 }: CompactInputProps) {
   const { t } = useI18n()
+  const { isCollapsed } = useSidebar()
   const [text, setText] = useState('')
   const [screenshot, setScreenshot] = useState<string | null>(null)
   const [screenshotName, setScreenshotName] = useState('')
@@ -95,8 +101,8 @@ export default function CompactInput({
         onSubmit(submitData)
       }, FLY_DURATION)
     } else {
-      onSubmit(submitData)
-      clearInput()
+      const shouldClear = onSubmit(submitData)
+      if (shouldClear) clearInput()
     }
   }
 
@@ -118,12 +124,18 @@ export default function CompactInput({
   const hasContent = text.trim().length > 0 || screenshot !== null
 
   return (
-    <div className="fixed bottom-[96px] left-0 right-0 z-30 px-section safe-bottom">
-      <div className="max-w-2xl mx-auto relative">
+    <>
+    {/* Gradient backdrop behind input + bottom nav */}
+    <div className={`fixed bottom-0 left-0 right-0 z-20 h-[260px] pointer-events-none bg-gradient-to-b from-transparent via-white/80 via-[35%] to-white/80 md:hidden transition-[padding-left] duration-200 ease-out ${isCollapsed ? 'md:pl-[80px]' : 'md:pl-[272px]'}`} />
+    <div className={`fixed bottom-[96px] md:bottom-4 left-0 right-0 z-30 px-4 safe-bottom pointer-events-none transition-[padding-left] duration-200 ease-out ${isCollapsed ? 'md:pl-[80px]' : 'md:pl-[272px]'}`}>
+      <div className="max-w-2xl mx-auto w-full relative pointer-events-auto flex flex-col gap-3">
+        {banner}
+
         {/* Flying text overlay */}
         {flyingText && (
           <div
             className="absolute bottom-full left-0 right-0 px-[52px] pointer-events-none animate-send-fly"
+            style={{ willChange: 'transform, opacity, filter' }}
           >
             <p className="text-body text-text-primary leading-relaxed line-clamp-2">
               {flyingText}
@@ -163,7 +175,7 @@ export default function CompactInput({
           )}
 
           {/* Input row */}
-          <div className="flex items-end gap-2 p-2">
+          <div className="flex items-end gap-2 px-2 pt-4 pb-4">
             {/* [+] button - opens gallery */}
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -204,10 +216,13 @@ export default function CompactInput({
 
           {/* Usage counter */}
           {remaining !== undefined && (
-            <div className="flex justify-center pb-2">
-              <span className={`text-[11px] font-medium ${getUsageColor()}`}>
-                {remaining} {t('usage_remaining')}
-              </span>
+            <div className="flex flex-col">
+              <div className="h-px bg-border" />
+              <div className="flex justify-center py-2">
+                <span className={`text-[11px] font-medium ${getUsageColor()}`}>
+                  {remaining} {t('usage_remaining')}
+                </span>
+              </div>
             </div>
           )}
 
@@ -226,5 +241,6 @@ export default function CompactInput({
         </div>
       </div>
     </div>
+    </>
   )
 }

@@ -52,8 +52,8 @@ const config: Config = {
         'display-sm': ['26px', { lineHeight: '1.2', fontWeight: '400', letterSpacing: '-0.01em' }],
         hero: ['28px', { lineHeight: '1.2', fontWeight: '400', letterSpacing: '-0.02em' }],
         title: ['22px', { lineHeight: '1.3', fontWeight: '600', letterSpacing: '-0.01em' }],
-        subtitle: ['17px', { lineHeight: '1.4', fontWeight: '500' }],
-        body: ['15px', { lineHeight: '1.6', fontWeight: '400' }],
+        subtitle: ['16px', { lineHeight: '1.4', fontWeight: '500' }],
+        body: ['14px', { lineHeight: '1.6', fontWeight: '400' }],
         caption: ['13px', { lineHeight: '1.4', fontWeight: '400' }],
       },
       boxShadow: {
@@ -123,8 +123,22 @@ const config: Config = {
           '40%': { opacity: '1', transform: 'scale(1)' },
         },
         'send-fly': {
-          '0%': { opacity: '1', transform: 'scale(1) translateY(0)' },
-          '100%': { opacity: '0', transform: 'scale(0.6) translateY(-80px)' },
+          '0%': { opacity: '1', transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+          '100%': { opacity: '0', transform: 'translateY(-75vh) scale(0.75)', filter: 'blur(8px)' },
+        },
+        unblur: {
+          '0%': { opacity: '0.2', filter: 'blur(10px)' },
+          '100%': { opacity: '1', filter: 'blur(0px)' },
+        },
+        'bounce-in': {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '50%': { transform: 'scale(1.12)', opacity: '1' },
+          '70%': { transform: 'scale(0.95)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'bounce-out': {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '100%': { transform: 'scale(0)', opacity: '0' },
         },
       },
       animation: {
@@ -139,7 +153,10 @@ const config: Config = {
         'action-menu-in': 'action-menu-in 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
         blink: 'blink 1s step-end infinite',
         'thinking-dot': 'thinking-dot 1.4s ease-in-out infinite',
-        'send-fly': 'send-fly 400ms ease-in forwards',
+        'send-fly': 'send-fly 700ms ease-in-out forwards',
+        unblur: 'unblur 800ms ease-out forwards',
+        'bounce-in': 'bounce-in 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+        'bounce-out': 'bounce-out 200ms ease-in forwards',
       },
     },
   },

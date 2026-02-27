@@ -6,7 +6,7 @@ import { SuggestedResponse } from '@/types/analysis'
 import { TonePill } from '@/components/ui/Pill'
 import { useToast } from '@/components/ui/Toast'
 import { useI18n } from '@/lib/i18n'
-import { ALL_TONES } from '@/lib/usage'
+import { ALL_TONES, getAllowedTones } from '@/lib/usage'
 import type { PlanId } from '@/types/subscription'
 
 interface SuggestedResponsesProps {
@@ -16,19 +16,28 @@ interface SuggestedResponsesProps {
 }
 
 export default function SuggestedResponses({ responses, lockedTones, plan = 'free' }: SuggestedResponsesProps) {
-  // Determine which tones are locked (not present in responses)
-  const returnedTones = responses.map(r => r.tone)
-  const locked = lockedTones || ALL_TONES.filter(t => !returnedTones.includes(t))
-
-  // Determine target upgrade plan
+  const allowed = getAllowedTones(plan)
   const targetPlan: PlanId = plan === 'free' ? 'plus' : 'pro'
+
+  // Split responses into unlocked (plan allows) and locked (plan doesn't)
+  const unlocked = responses.filter(r => allowed.includes(r.tone))
+  const lockedFromResponses = responses.filter(r => !allowed.includes(r.tone))
+
+  // For tones not returned by Claude at all, show them as locked too (if plan doesn't allow)
+  const returnedTones = responses.map(r => r.tone)
+  const missingLockedTones = (lockedTones && lockedTones.length > 0)
+    ? lockedTones.filter(t => !returnedTones.includes(t))
+    : ALL_TONES.filter(t => !allowed.includes(t) && !returnedTones.includes(t))
 
   return (
     <div className="flex flex-col gap-3">
-      {responses.map((response, i) => (
+      {unlocked.map((response, i) => (
         <ResponseCard key={i} response={response} />
       ))}
-      {locked.length > 0 && locked.map((tone) => (
+      {lockedFromResponses.map((response) => (
+        <LockedResponseCard key={response.tone} tone={response.tone} targetPlan={targetPlan} />
+      ))}
+      {missingLockedTones.map((tone) => (
         <LockedResponseCard key={tone} tone={tone as SuggestedResponse['tone']} targetPlan={targetPlan} />
       ))}
     </div>

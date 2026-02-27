@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { analyzeConversation } from '@/lib/claude'
 import { createClient } from '@/lib/supabase/server'
-import { PLAN_LIMITS, getAllowedTones } from '@/lib/usage'
+import { PLAN_LIMITS } from '@/lib/usage'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import type { PlanId } from '@/types/subscription'
 
@@ -90,14 +90,6 @@ export async function POST(request: NextRequest) {
       await admin.from('user_subscriptions')
         .update({ bonus_credits: bonusCredits - 1, updated_at: new Date().toISOString() })
         .eq('user_id', user.id)
-    }
-
-    // Filter tones for free users
-    if (plan === 'free') {
-      const allowedTones = getAllowedTones(plan)
-      analysis.suggested_responses = analysis.suggested_responses.filter(
-        r => allowedTones.includes(r.tone)
-      )
     }
 
     return NextResponse.json(analysis)

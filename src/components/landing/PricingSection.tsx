@@ -13,7 +13,7 @@ export default function PricingSection() {
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly')
 
   const handleSelectPlan = () => {
-    router.push('/app/pricing')
+    router.push('/app')
   }
 
   return (
@@ -34,6 +34,7 @@ export default function PricingSection() {
           currentPlan="free"
           billingInterval={billingInterval}
           onSelectPlan={handleSelectPlan}
+          landingMode
         />
       </div>
 

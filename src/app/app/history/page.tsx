@@ -7,6 +7,7 @@ import HistoryList from '@/components/HistoryList'
 import Skeleton from '@/components/ui/Skeleton'
 import { LogIn } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
+import { useSubscription } from '@/lib/subscription-context'
 import PageHeader from '@/components/ui/PageHeader'
 import Link from 'next/link'
 
@@ -15,6 +16,7 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true)
   const [isAuthed, setIsAuthed] = useState(false)
   const { t } = useI18n()
+  const { usage } = useSubscription()
 
   const supabase = createClient()
 
@@ -48,9 +50,9 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div>
+      <div className="flex flex-col gap-6">
         <PageHeader title={t('history_title')} />
-        <div className="flex flex-col gap-3">
+        <div className="max-w-2xl mx-auto w-full flex flex-col gap-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-bg-surface rounded-card p-4 border border-border flex flex-col gap-3">
               <Skeleton className="h-4 w-3/4" />
@@ -68,9 +70,9 @@ export default function HistoryPage() {
 
   if (!isAuthed) {
     return (
-      <div>
+      <div className="flex flex-col gap-6">
         <PageHeader title={t('history_title')} />
-        <div className="text-center py-16 flex flex-col gap-4">
+        <div className="max-w-2xl mx-auto w-full text-center py-16 flex flex-col gap-4">
           <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center mx-auto">
             <LogIn size={24} strokeWidth={1.5} className="text-text-tertiary" />
           </div>
@@ -92,9 +94,11 @@ export default function HistoryPage() {
   }
 
   return (
-    <div>
+    <div className="flex flex-col gap-6">
       <PageHeader title={t('history_title')} />
-      <HistoryList analyses={analyses} onDelete={handleDelete} />
+      <div className="max-w-2xl mx-auto w-full">
+        <HistoryList analyses={analyses} onDelete={handleDelete} plan={usage?.plan || 'free'} />
+      </div>
     </div>
   )
 }

@@ -10,6 +10,7 @@ export const ALL_TONES = ['Direct', 'Warm', 'Playful', 'Professional', 'Cautious
 
 export function getAllowedTones(plan: PlanId): string[] {
   if (plan === 'free') return ['Direct']
+  if (plan === 'plus') return ['Direct', 'Warm', 'Professional']
   return [...ALL_TONES]
 }
 
@@ -57,7 +58,7 @@ export const PLAN_FEATURES: Record<PlanId, string[]> = {
   plus: [
     'feature_75_analyses',
     'feature_full_analysis',
-    'feature_all_tones',
+    'feature_three_tones',
     'feature_history',
     'feature_contact_labels',
   ],

@@ -10,7 +10,9 @@ import CompactInput from '@/components/CompactInput'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import BottomSheet from '@/components/ui/BottomSheet'
 import Skeleton from '@/components/ui/Skeleton'
-import { LogIn, Users, Plus, Trash2, ChevronRight } from 'lucide-react'
+import ActionMenu from '@/components/ui/ActionMenu'
+import { LogIn, Users, Trash2, Pencil, ChevronRight } from 'lucide-react'
+import { useSidebar } from '@/components/AppShell'
 import { useI18n } from '@/lib/i18n'
 import { useSubscription } from '@/lib/subscription-context'
 import { PERSON_CONTEXT_PREFIX } from '@/lib/prompts'
@@ -42,15 +44,24 @@ export default function PeoplePage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [deletePersonTarget, setDeletePersonTarget] = useState<Person | null>(null)
   const [optionsPerson, setOptionsPerson] = useState<Person | null>(null)
+  const [renamePerson, setRenamePerson] = useState<Person | null>(null)
+  const [renameValue, setRenameValue] = useState('')
   const [newAnalysisId, setNewAnalysisId] = useState<string | null>(null)
   const { t } = useI18n()
   const { usage, refreshUsage } = useSubscription()
+  const { setBottomNavAction } = useSidebar()
   const searchParams = useSearchParams()
   const router = useRouter()
 
   const supabase = createClient()
 
   const initialPersonParam = useRef(searchParams.get('person'))
+
+  // Register the "add person" action for the BottomNav Plus button
+  useEffect(() => {
+    setBottomNavAction(() => () => setShowAddForm(true))
+    return () => setBottomNavAction(null)
+  }, [setBottomNavAction])
 
   useEffect(() => {
     async function load() {
@@ -127,13 +138,13 @@ export default function PeoplePage() {
     loadPersonAnalyses(person)
   }
 
-  const handleAddPerson = async (name: string, emoji: string) => {
+  const handleAddPerson = async (name: string) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
     const { data, error } = await supabase
       .from('people')
-      .insert({ user_id: user.id, name, avatar_emoji: emoji })
+      .insert({ user_id: user.id, name })
       .select()
       .single()
 
@@ -145,16 +156,46 @@ export default function PeoplePage() {
 
   const handleDeletePerson = async () => {
     if (!deletePersonTarget) return
+    await supabase.from('analyses').delete().eq('person_id', deletePersonTarget.id)
     await supabase.from('people').delete().eq('id', deletePersonTarget.id)
     setPeople((prev) => prev.filter((p) => p.id !== deletePersonTarget.id))
     if (selectedPerson?.id === deletePersonTarget.id) {
       setSelectedPerson(null)
+      setPersonAnalyses([])
+      router.replace('/app/people', { scroll: false })
     }
     setDeletePersonTarget(null)
     setOptionsPerson(null)
   }
 
-  const handleSubmitForPerson = async (data: { text?: string; screenshot?: string }) => {
+  const openRename = (person: Person) => {
+    setRenameValue(person.name)
+    setRenamePerson(person)
+    setOptionsPerson(null)
+  }
+
+  const handleRenamePerson = async () => {
+    if (!renamePerson || !renameValue.trim()) return
+    const trimmed = renameValue.trim()
+
+    await supabase.from('people').update({ name: trimmed }).eq('id', renamePerson.id)
+
+    setPeople((prev) =>
+      prev.map((p) => (p.id === renamePerson.id ? { ...p, name: trimmed } : p))
+    )
+    if (selectedPerson?.id === renamePerson.id) {
+      setSelectedPerson({ ...selectedPerson, name: trimmed })
+    }
+    setRenamePerson(null)
+  }
+
+  const handleSubmitForPerson = (data: { text?: string; screenshot?: string }): boolean => {
+    if (!selectedPerson) return false
+    runPersonAnalysis(data)
+    return true
+  }
+
+  const runPersonAnalysis = async (data: { text?: string; screenshot?: string }) => {
     if (!selectedPerson) return
     setIsAnalyzing(true)
 
@@ -198,7 +239,7 @@ export default function PeoplePage() {
           ...prev,
           [selectedPerson.id]: (prev[selectedPerson.id] || 0) + 1,
         }))
-        setTimeout(() => setNewAnalysisId(null), 600)
+        setTimeout(() => setNewAnalysisId(null), 1200)
       }
 
       refreshUsage()
@@ -225,7 +266,7 @@ export default function PeoplePage() {
     if (personIdFromUrl) {
       // Will show person detail, use matching skeleton
       return (
-        <div className="flex flex-col gap-4 pb-4">
+        <div className="flex flex-col gap-6 pb-4">
           <div className="flex items-center gap-3">
             <div className="min-h-[44px] min-w-[44px]" />
             <Skeleton className="h-10 w-10 rounded-full" />
@@ -248,18 +289,17 @@ export default function PeoplePage() {
       )
     }
     return (
-      <div>
+      <div className="flex flex-col gap-6 pb-24 flex-1">
         <PageHeader title={t('people_title')} />
-        <div className="flex flex-col gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-bg-surface rounded-card p-4 border border-border flex items-center gap-4">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="flex-1 flex flex-col gap-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-            </div>
-          ))}
+        <div
+          className="flex flex-col items-center justify-center text-center"
+          style={{ minHeight: 'calc(100vh - 336px)' }}
+        >
+          <div className="flex flex-col items-center gap-3">
+            <Skeleton className="w-12 h-12 rounded-full" />
+            <Skeleton className="w-32 h-8" />
+            <Skeleton className="w-48 h-5" />
+          </div>
         </div>
       </div>
     )
@@ -268,9 +308,9 @@ export default function PeoplePage() {
   // Not authenticated
   if (!isAuthed) {
     return (
-      <div>
+      <div className="flex flex-col gap-6">
         <PageHeader title={t('people_title')} />
-        <div className="text-center py-16 flex flex-col items-center gap-4">
+        <div className="max-w-2xl mx-auto w-full text-center py-16 flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center">
             <LogIn size={24} strokeWidth={1.5} className="text-text-tertiary" />
           </div>
@@ -292,73 +332,98 @@ export default function PeoplePage() {
   // Person detail: Claude Chats-style flat list
   if (selectedPerson) {
     return (
-      <div className="flex flex-col gap-0 pb-4 animate-fade-in">
+      <div className="flex flex-col gap-6 pb-4 animate-fade-in min-h-[calc(100dvh-8rem)]">
         {/* Header */}
         <PageHeader
           onBack={handleBack}
           title={selectedPerson.name}
           subtitle={`${analysisCounts[selectedPerson.id] || 0} ${t('analyses_count')}`}
-          avatar={selectedPerson.avatar_emoji}
+          avatar={selectedPerson.name.charAt(0).toUpperCase()}
+          action={
+            <ActionMenu
+              items={[
+                {
+                  label: t('rename_person'),
+                  icon: <Pencil size={16} strokeWidth={1.5} />,
+                  onClick: () => openRename(selectedPerson),
+                },
+                {
+                  label: t('delete_person'),
+                  icon: <Trash2 size={16} strokeWidth={1.5} />,
+                  onClick: () => setDeletePersonTarget(selectedPerson),
+                  variant: 'danger',
+                },
+              ]}
+            />
+          }
         />
 
-        {/* Analyses list: flat rows like Claude Chats */}
-        {loadingAnalyses ? (
-          <div className="flex flex-col">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3 px-2 py-3.5">
-                <div className="flex-1 flex flex-col gap-2">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-16" />
+        <div className="max-w-2xl mx-auto w-full flex flex-col flex-1 gap-6">
+          {/* Analyses list: flat rows like Claude Chats */}
+          {loadingAnalyses ? (
+            <div className="flex flex-col">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 px-2 py-3.5">
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
                 </div>
+              ))}
+            </div>
+          ) : personAnalyses.length === 0 && !isAnalyzing ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-16 gap-2">
+              <p className="text-subtitle text-text-primary">{t('no_readings_yet')}</p>
+              <p className="text-body text-text-tertiary">{t('no_readings_person_subtitle')}</p>
+            </div>
+          ) : personAnalyses.length === 0 && isAnalyzing ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 animate-fade-in-up">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '160ms' }} />
+                <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '320ms' }} />
               </div>
-            ))}
-          </div>
-        ) : personAnalyses.length === 0 && !isAnalyzing ? (
-          <div className="text-center py-12 flex flex-col items-center gap-2">
-            <p className="text-subtitle text-text-primary">{t('no_readings_yet')}</p>
-            <p className="text-body text-text-tertiary">{t('no_readings_person_subtitle')}</p>
-          </div>
-        ) : (
-          <div className="flex flex-col divide-y divide-border">
-            {personAnalyses.map((item) => (
-              <Link
-                key={item.id}
-                href={`/app/analysis/${item.id}`}
-                className={`flex items-center gap-3 px-2 py-3.5 hover:bg-bg-secondary transition-colors group ${
-                  item.id === newAnalysisId ? 'opacity-0 animate-reveal-in' : ''
-                }`}
-                style={item.id === newAnalysisId ? { animationFillMode: 'forwards' } : undefined}
-              >
-                <div className="flex-1 flex flex-col gap-1 min-w-0">
-                  <p className="text-body text-text-primary truncate">
-                    {item.input_text?.slice(0, 80) || item.analysis_json.overall_read.slice(0, 80)}
-                  </p>
-                  <p className="text-caption text-text-tertiary truncate">
-                    {item.analysis_json.decoded_pairs[0]?.meant}
-                  </p>
-                  <span className="text-caption text-text-tertiary">
-                    {formatTimeAgo(item.created_at, t)}
-                  </span>
+              <span className="text-caption text-text-tertiary">{t('thinking_label')}</span>
+            </div>
+          ) : (
+            <div className="flex flex-col divide-y divide-border">
+              {/* Thinking indicator at top (where new analysis will appear) */}
+              {isAnalyzing && (
+                <div className="flex items-center gap-2.5 px-2 py-3.5 animate-fade-in-up">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '160ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '320ms' }} />
+                  </div>
+                  <span className="text-caption text-text-tertiary">{t('thinking_label')}</span>
                 </div>
-                <ChevronRight size={16} strokeWidth={1.5} className="text-text-tertiary flex-shrink-0 self-center" />
-              </Link>
-            ))}
+              )}
 
-            {/* Thinking dots row */}
-            {isAnalyzing && (
-              <div className="flex items-center gap-3 px-2 py-3.5 animate-fade-in-up">
-                <div className="w-8 h-8 rounded-full bg-bg-secondary flex items-center justify-center text-base flex-shrink-0">
-                  {selectedPerson.avatar_emoji}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '0ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '160ms' }} />
-                  <span className="w-2 h-2 rounded-full bg-accent/60 animate-thinking-dot" style={{ animationDelay: '320ms' }} />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+              {personAnalyses.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/app/analysis/${item.id}`}
+                  className={`flex items-center gap-3 px-2 py-3.5 hover:bg-bg-secondary transition-colors group ${
+                    item.id === newAnalysisId ? 'animate-unblur' : ''
+                  }`}
+                >
+                  <div className="flex-1 flex flex-col gap-1 min-w-0">
+                    <p className="text-body text-text-primary truncate">
+                      {item.input_text?.slice(0, 80) || item.analysis_json.overall_read.slice(0, 80)}
+                    </p>
+                    <p className="text-caption text-text-tertiary truncate">
+                      {item.analysis_json.decoded_pairs[0]?.meant}
+                    </p>
+                    <span className="text-caption text-text-tertiary">
+                      {formatTimeAgo(item.created_at, t)}
+                    </span>
+                  </div>
+                  <ChevronRight size={16} strokeWidth={1.5} className="text-text-tertiary flex-shrink-0 self-center" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Sticky input with pre-selected person */}
         <CompactInput
@@ -368,47 +433,80 @@ export default function PeoplePage() {
           total={total}
           animateSend
         />
+
+        <ConfirmDialog
+          open={deletePersonTarget !== null}
+          onClose={() => setDeletePersonTarget(null)}
+          onConfirm={handleDeletePerson}
+          title={t('confirm_delete_person_title')}
+          description={t('delete_person_confirm')}
+          confirmLabel={t('delete')}
+          cancelLabel={t('cancel')}
+          variant="danger"
+        />
+
+        <BottomSheet
+          open={renamePerson !== null}
+          onClose={() => setRenamePerson(null)}
+          title={t('rename_person')}
+        >
+          <div className="flex flex-col gap-6">
+            <input
+              type="text"
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              className="w-full px-4 py-3 rounded-button border border-border bg-bg-secondary text-body text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent transition-colors"
+              placeholder={t('person_name_placeholder')}
+              autoFocus
+            />
+            <button
+              onClick={handleRenamePerson}
+              disabled={!renameValue.trim() || renameValue.trim() === renamePerson?.name}
+              className="w-full py-3 rounded-button bg-accent text-white text-body font-medium hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:pointer-events-none min-h-[44px]"
+            >
+              {t('save_changes')}
+            </button>
+          </div>
+        </BottomSheet>
       </div>
     )
   }
 
   // People list view
   return (
-    <div className="pb-24">
+    <div className="flex flex-col gap-6 pb-24 flex-1">
       <PageHeader title={t('people_title')} />
 
-      {people.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center">
-            <Users size={24} strokeWidth={1.5} className="text-text-tertiary" />
+      <div className="max-w-2xl mx-auto w-full">
+        {people.length === 0 ? (
+          <div
+            className="flex flex-col items-center justify-center text-center"
+            style={{ minHeight: 'calc(100vh - 336px)' }}
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center">
+                <Users size={20} strokeWidth={1.5} className="text-text-tertiary" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-subtitle text-text-primary">{t('people_empty_title')}</p>
+                <p className="text-body text-text-secondary max-w-[70%] mx-auto">{t('people_empty_subtitle')}</p>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-subtitle text-text-primary">{t('people_empty_title')}</p>
-            <p className="text-body text-text-secondary max-w-[70%] mx-auto">{t('people_empty_subtitle')}</p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {people.map((person) => (
+              <PersonCard
+                key={person.id}
+                person={person}
+                analysisCount={analysisCounts[person.id] || 0}
+                onClick={() => handleSelectPerson(person)}
+                onOptions={() => setOptionsPerson(person)}
+              />
+            ))}
           </div>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {people.map((person) => (
-            <PersonCard
-              key={person.id}
-              person={person}
-              analysisCount={analysisCounts[person.id] || 0}
-              onClick={() => handleSelectPerson(person)}
-              onOptions={() => setOptionsPerson(person)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* FAB - floating add button */}
-      <button
-        onClick={() => setShowAddForm(true)}
-        className="fixed bottom-24 right-6 w-14 h-14 rounded-full text-white transition-colors flex items-center justify-center z-40"
-        style={{ background: 'linear-gradient(180deg, rgb(13 13 13) 0%, rgb(13 13 13 / 73%) 100%)' }}
-      >
-        <Plus size={24} strokeWidth={2} />
-      </button>
+        )}
+      </div>
 
       <AddPersonForm
         open={showAddForm}
@@ -423,7 +521,20 @@ export default function PeoplePage() {
         <div className="flex flex-col gap-1">
           <button
             onClick={() => {
-              if (optionsPerson) setDeletePersonTarget(optionsPerson)
+              if (optionsPerson) openRename(optionsPerson)
+            }}
+            className="flex items-center gap-3 px-2 py-3 rounded-card hover:bg-bg-secondary transition-colors text-text-primary min-h-[44px]"
+          >
+            <Pencil size={18} strokeWidth={1.5} />
+            <span className="text-body">{t('rename_person')}</span>
+          </button>
+          <button
+            onClick={() => {
+              if (optionsPerson) {
+                const target = optionsPerson
+                setOptionsPerson(null)
+                setTimeout(() => setDeletePersonTarget(target), 300)
+              }
             }}
             className="flex items-center gap-3 px-2 py-3 rounded-card hover:bg-bg-secondary transition-colors text-danger min-h-[44px]"
           >
@@ -433,9 +544,33 @@ export default function PeoplePage() {
         </div>
       </BottomSheet>
 
+      <BottomSheet
+        open={renamePerson !== null && !selectedPerson}
+        onClose={() => setRenamePerson(null)}
+        title={t('rename_person')}
+      >
+        <div className="flex flex-col gap-6">
+          <input
+            type="text"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            className="w-full px-4 py-3 rounded-button border border-border bg-bg-secondary text-body text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent transition-colors"
+            placeholder={t('person_name_placeholder')}
+            autoFocus
+          />
+          <button
+            onClick={handleRenamePerson}
+            disabled={!renameValue.trim() || renameValue.trim() === renamePerson?.name}
+            className="w-full py-3 rounded-button bg-accent text-white text-body font-medium hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:pointer-events-none min-h-[44px]"
+          >
+            {t('save_changes')}
+          </button>
+        </div>
+      </BottomSheet>
+
       <ConfirmDialog
-        open={deletePersonTarget !== null && !selectedPerson}
-        onClose={() => { setDeletePersonTarget(null); setOptionsPerson(null) }}
+        open={deletePersonTarget !== null && !selectedPerson && optionsPerson === null}
+        onClose={() => setDeletePersonTarget(null)}
         onConfirm={handleDeletePerson}
         title={t('confirm_delete_person_title')}
         description={t('delete_person_confirm')}

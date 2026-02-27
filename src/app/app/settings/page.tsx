@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { LogOut, LogIn, Trash2, Shield, CreditCard, ArrowRight } from 'lucide-react'
+import { LogOut, LogIn, Trash2, Shield, CreditCard, ArrowRight, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useI18n } from '@/lib/i18n'
 import { useSubscription } from '@/lib/subscription-context'
@@ -40,15 +40,18 @@ export default function SettingsPage() {
   }, [supabase.auth])
 
   const handleSignOut = async () => {
+    window.location.href = '/'
     await supabase.auth.signOut()
-    setUser(null)
   }
 
-  const handleDeleteData = async () => {
+  const handleDeleteAccount = async () => {
     if (!user) return
     await supabase.from('analyses').delete().eq('user_id', user.id)
+    await supabase.from('people').delete().eq('user_id', user.id)
     await supabase.from('user_preferences').delete().eq('user_id', user.id)
     setShowDeleteConfirm(false)
+    window.location.href = '/'
+    await supabase.auth.signOut()
   }
 
   const handleManageSubscription = async () => {
@@ -66,6 +69,7 @@ export default function SettingsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t('settings_title')} />
 
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-6">
       {/* Subscription */}
       {user && (
         <SectionGroup title={t('settings_subscription')}>
@@ -91,25 +95,26 @@ export default function SettingsPage() {
               )}
             </div>
 
-            {usage && usage.plan !== 'free' ? (
-              <Button
-                variant="ghost"
-                fullWidth
-                onClick={handleManageSubscription}
-                disabled={portalLoading}
-              >
-                {t('settings_manage_subscription')}
-                <ArrowRight size={14} strokeWidth={1.5} />
-              </Button>
-            ) : (
+            {usage && usage.plan !== 'pro' && (
               <Link href="/app/pricing">
                 <Button variant="primary" fullWidth>
-                  {t('upgrade')}
-                  <ArrowRight size={14} strokeWidth={1.5} />
+                  <Sparkles size={14} strokeWidth={1.5} />
+                  {usage.plan === 'plus' ? t('upgrade_to_pro') : t('upgrade')}
                 </Button>
               </Link>
             )}
           </div>
+
+          {usage && usage.plan !== 'free' && (
+            <button
+              onClick={handleManageSubscription}
+              disabled={portalLoading}
+              className="flex items-center justify-center gap-2 text-body text-text-secondary hover:text-text-primary transition-colors min-h-[44px] w-full"
+            >
+              <CreditCard size={16} strokeWidth={1.5} />
+              {t('settings_manage_subscription')}
+            </button>
+          )}
         </SectionGroup>
       )}
 
@@ -118,18 +123,21 @@ export default function SettingsPage() {
         {loading ? (
           <div className="h-14 bg-white rounded-card animate-shimmer shimmer" />
         ) : user ? (
-          <div className="flex flex-col gap-3">
+          <>
             <div className="bg-white rounded-card p-4 border border-border flex flex-col gap-1">
               <p className="text-caption text-text-tertiary">{t('settings_signed_in_as')}</p>
               <p className="text-body text-text-primary font-medium">
                 {user.email}
               </p>
             </div>
-            <Button variant="ghost" fullWidth onClick={handleSignOut}>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center justify-center gap-2 text-body text-text-secondary hover:text-text-primary transition-colors min-h-[44px] w-full"
+            >
               <LogOut size={16} strokeWidth={1.5} />
               {t('settings_sign_out')}
-            </Button>
-          </div>
+            </button>
+          </>
         ) : showAuth ? (
           <AuthPrompt />
         ) : (
@@ -151,31 +159,22 @@ export default function SettingsPage() {
         {user && (
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="flex items-center justify-center gap-2 text-body text-text-tertiary hover:text-danger transition-colors min-h-[44px] w-full"
+            className="flex items-center justify-center gap-2 text-body text-text-secondary hover:text-text-primary transition-colors min-h-[44px] w-full"
           >
             <Trash2 size={16} strokeWidth={1.5} />
-            {t('settings_delete_data')}
+            {t('settings_delete_account')}
           </button>
         )}
       </SectionGroup>
 
-      {/* Legal */}
-      <div className="flex items-center justify-center gap-3 text-caption text-text-tertiary pt-4">
-        <Link href="/privacy" className="underline hover:text-text-secondary transition-colors">
-          {t('privacy_policy_title')}
-        </Link>
-        <span>·</span>
-        <Link href="/terms" className="underline hover:text-text-secondary transition-colors">
-          {t('terms_title')}
-        </Link>
       </div>
 
       <ConfirmDialog
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={handleDeleteData}
-        title={t('confirm_delete_data_title')}
-        description={t('confirm_delete_data_desc')}
+        onConfirm={handleDeleteAccount}
+        title={t('confirm_delete_account_title')}
+        description={t('confirm_delete_account_desc')}
         confirmLabel={t('delete')}
         cancelLabel={t('cancel')}
         variant="danger"

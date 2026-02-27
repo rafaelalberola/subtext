@@ -15,7 +15,7 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const supabase = createClient()
 
   const handleGoogleSignIn = async () => {
@@ -43,6 +43,7 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
       email: email.trim(),
       options: {
         emailRedirectTo: `${window.location.origin}/app`,
+        data: { locale },
       },
     })
 
@@ -77,7 +78,7 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
           {t('auth_save_title')}
         </h3>
         <p className="text-body text-text-secondary">
-          {t('auth_save_subtitle')}
+          {t('auth_save_subtitle_1')}<br />{t('auth_save_subtitle_2')}
         </p>
       </div>
 

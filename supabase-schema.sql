@@ -91,5 +91,5 @@ create policy "Users can delete own people"
 create index if not exists people_user_id on people(user_id);
 
 -- Add person_id to analyses
-alter table analyses add column if not exists person_id uuid references people(id) on delete set null;
+alter table analyses add column if not exists person_id uuid references people(id) on delete cascade;
 create index if not exists analyses_person_id on analyses(person_id);

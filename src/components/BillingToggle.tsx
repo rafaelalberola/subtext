@@ -26,7 +26,7 @@ export default function BillingToggle({ interval, onChange }: BillingToggleProps
         </button>
         <button
           onClick={() => onChange('annual')}
-          className={`px-4 py-1.5 rounded-pill text-caption font-medium transition-all flex items-center gap-1.5 ${
+          className={`pl-4 pr-2 py-1.5 rounded-pill text-caption font-medium transition-all flex items-center gap-1.5 ${
             interval === 'annual'
               ? 'bg-white text-text-primary shadow-sm'
               : 'text-text-tertiary hover:text-text-secondary'

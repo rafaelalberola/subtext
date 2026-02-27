@@ -16,13 +16,13 @@ export default function PersonCard({ person, analysisCount, onClick, onOptions }
 
   return (
     <div className="bg-bg-surface rounded-card border border-border hover:border-text-tertiary transition-all duration-200 group">
-      <div className="flex items-center gap-4 p-4">
+      <div className="flex items-center gap-3 py-2 px-4">
         <button
           onClick={onClick}
-          className="flex items-center gap-4 flex-1 min-w-0 text-left min-h-[44px]"
+          className="flex items-center gap-3 flex-1 min-w-0 text-left min-h-[44px]"
         >
-          <div className="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center text-2xl flex-shrink-0 group-hover:bg-accent/5 transition-colors">
-            {person.avatar_emoji}
+          <div className="w-9 h-9 rounded-full bg-bg-secondary flex items-center justify-center text-body font-medium text-text-tertiary flex-shrink-0 group-hover:bg-accent/5 transition-colors">
+            {person.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex flex-col gap-0.5 flex-1 min-w-0">
             <p className="text-body text-text-primary font-medium truncate">{person.name}</p>

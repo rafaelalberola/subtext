@@ -54,7 +54,7 @@ export function LowUsageBanner() {
   const { t } = useI18n()
 
   return (
-    <div className="flex items-center justify-between p-3 bg-warning/10 border border-warning/20 rounded-card text-caption">
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 p-3 bg-warning/10 border border-warning/20 rounded-card text-caption">
       <span className="text-text-secondary">{t('usage_last_analysis')}</span>
       <Link
         href="/app/pricing"

@@ -13,8 +13,8 @@ export default function PersonHeader({ person, onChangePress }: PersonHeaderProp
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-bg-surface border border-border rounded-card">
-      <div className="w-9 h-9 rounded-full bg-bg-secondary flex items-center justify-center text-subtitle">
-        {person.avatar_emoji}
+      <div className="w-9 h-9 rounded-full bg-bg-secondary flex items-center justify-center text-caption text-text-tertiary">
+        {person.name.charAt(0).toUpperCase()}
       </div>
       <span className="text-subtitle text-text-primary flex-1">
         {person.name}

@@ -42,7 +42,7 @@ export interface Person {
   id: string
   user_id: string
   name: string
-  avatar_emoji: string
+  avatar_emoji?: string
   notes?: string
   created_at: string
   updated_at: string
