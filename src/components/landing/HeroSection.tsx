@@ -15,9 +15,8 @@ export default function HeroSection() {
   return (
     <section className="pt-12 pb-8">
       <div className="text-center mb-10">
-        <h1 className="font-serif text-display text-text-primary leading-tight max-w-[15rem] mx-auto opacity-0 animate-fade-in-up" style={{ animationFillMode: 'forwards' }}>
+        <h1 className="font-serif text-display text-text-primary leading-tight mx-auto opacity-0 animate-fade-in-up whitespace-nowrap" style={{ animationFillMode: 'forwards' }}>
           {parts[0]}
-          <br className="sm:hidden" />
           <span className="text-accent">{accentWord}</span>
           {parts[1]}
         </h1>

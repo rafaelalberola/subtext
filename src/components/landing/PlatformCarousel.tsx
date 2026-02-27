@@ -42,8 +42,7 @@ export default function PlatformCarousel() {
       <div className="relative -mx-section">
         <div
           ref={scrollRef}
-          className="flex items-stretch gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pl-section"
-          style={{ paddingRight: '24px' }}
+          className="flex items-stretch gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pl-section pr-6 md:px-[calc(50%-170px)]"
         >
           {platforms.map((platform, i) => (
             <div key={platform} className="snap-center flex-shrink-0 w-[85vw] max-w-[340px] flex">
