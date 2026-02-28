@@ -225,12 +225,12 @@ export default function AppPage() {
   // Auth prompt
   if (!user) {
     return (
-      <div className="max-w-2xl mx-auto w-full flex flex-col gap-6 animate-fade-in">
-        <div className="pt-4 text-center flex flex-col gap-2">
+      <div className="max-w-sm mx-auto w-full flex-1 flex flex-col items-center justify-center gap-6 animate-fade-in">
+        <div className="text-center flex flex-col gap-2">
           <h1 className="font-serif text-display text-text-primary">{t('app_name')}</h1>
           <p className="text-body text-text-secondary max-w-md mx-auto">{t('main_subtitle_1')}<br />{t('main_subtitle_2')}</p>
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 w-full">
           <div className="flex items-start gap-3 bg-success-bg rounded-card px-4 py-3">
             <Gift size={18} strokeWidth={1.5} className="text-success-text mt-0.5 flex-shrink-0" />
             <div className="flex flex-col gap-1">
