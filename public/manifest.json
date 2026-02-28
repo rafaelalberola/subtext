@@ -1,7 +1,7 @@
 {
-  "name": "Subtext",
-  "short_name": "Subtext",
-  "description": "AI-powered communication copilot that reads between the lines",
+  "name": "Reveald",
+  "short_name": "Reveald",
+  "description": "Paste any conversation and discover what people really mean in their messages.",
   "start_url": "/app",
   "display": "standalone",
   "background_color": "#FFFFFF",

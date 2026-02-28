@@ -12,6 +12,7 @@ const newsreader = Newsreader({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.reveald.app'),
   title: 'Reveald | Read between the lines',
   description: 'Paste any conversation and discover what people really mean in their messages.',
   manifest: '/manifest.json',
@@ -25,11 +26,20 @@ export const metadata: Metadata = {
     description: 'Paste any conversation and discover what people really mean in their messages.',
     type: 'website',
     siteName: 'Reveald',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 2686,
+        height: 1526,
+        alt: 'Reveald',
+      },
+    ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Reveald | Read between the lines',
     description: 'Paste any conversation and discover what people really mean in their messages.',
+    images: ['/og-image.png'],
   },
 }
 
