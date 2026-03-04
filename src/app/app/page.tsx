@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { AnalysisResult, Person } from '@/types/analysis'
 import CompactInput from '@/components/CompactInput'
 import AnalysisResults from '@/components/AnalysisResults'
@@ -13,6 +14,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/Toast'
 import { useI18n } from '@/lib/i18n'
 import { useSubscription } from '@/lib/subscription-context'
+import { analytics } from '@/lib/analytics'
 import { AlertCircle, Gift, Sparkles, X } from 'lucide-react'
 import { PERSON_CONTEXT_PREFIX } from '@/lib/prompts'
 import { useSidebar } from '@/components/AppShell'
@@ -21,6 +23,7 @@ import type { User } from '@supabase/supabase-js'
 type AppView = 'input' | 'loading' | 'results'
 
 const ANALYSIS_STORAGE_KEY = 'reveald_pending_analysis'
+const FREE_ANALYSIS_STORAGE_KEY = 'reveald_free_analysis'
 
 export default function AppPage() {
   const [view, setView] = useState<AppView>('input')
@@ -41,8 +44,69 @@ export default function AppPage() {
   const { t } = useI18n()
   const { usage, loading: usageLoading, refreshUsage } = useSubscription()
   const { setHideChrome } = useSidebar()
+  const searchParams = useSearchParams()
+  const authTrackedRef = useRef(false)
 
   const supabase = createClient()
+
+  // Track Purchase when returning from Stripe checkout
+  useEffect(() => {
+    if (searchParams.get('payment') === 'success') {
+      analytics.purchase(0)
+      // Clean URL without reloading
+      window.history.replaceState({}, '', '/app')
+    }
+  }, [searchParams])
+
+  // Claim free analysis after signup
+  useEffect(() => {
+    const claimId = searchParams.get('claim')
+    if (!claimId || !user) return
+
+    try {
+      const stored = sessionStorage.getItem(FREE_ANALYSIS_STORAGE_KEY)
+      if (!stored) return
+
+      const parsed = JSON.parse(stored)
+      const { freeAnalysisId, analysis: claimedAnalysis, inputText: claimedText, inputType: claimedType } = parsed
+
+      if (!claimedAnalysis || freeAnalysisId !== claimId) return
+
+      // Show the analysis result immediately
+      setAnalysis(claimedAnalysis)
+      setInputText(claimedText || '')
+      setInputType(claimedType || 'text')
+      setView('results')
+
+      // Save analysis to user's account
+      supabase.from('analyses').insert({
+        user_id: user.id,
+        input_text: claimedText || '[Free trial]',
+        input_type: claimedType || 'text',
+        analysis_json: claimedAnalysis,
+        language: claimedAnalysis.language,
+      }).then(({ error: saveErr }) => {
+        if (saveErr) console.error('Failed to save claimed analysis:', saveErr)
+        else showToast(t('free_analysis_claimed'))
+      })
+
+      // Claim the free analysis on the server (link to user + record usage event)
+      fetch('/api/claim-free-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ freeAnalysisId: claimId }),
+      }).then(() => {
+        refreshUsage()
+        analytics.postAnalysisSignupCompleted()
+      })
+
+      // Clean up
+      sessionStorage.removeItem(FREE_ANALYSIS_STORAGE_KEY)
+      window.history.replaceState({}, '', '/app')
+    } catch {
+      // ignore claim errors
+    }
+  }, [user, searchParams])
 
   // Hide bottom nav and input during analysis
   useEffect(() => {
@@ -77,12 +141,18 @@ export default function AppPage() {
       }
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
       setAuthLoading(false)
       if (session?.user) {
         loadPeople()
         refreshUsage()
+        // Track signup/login conversion (fire once per session)
+        if (!authTrackedRef.current && event === 'SIGNED_IN') {
+          authTrackedRef.current = true
+          analytics.lead()
+          analytics.signUp()
+        }
       }
     })
 
@@ -166,6 +236,7 @@ export default function AppPage() {
       setAnalysis(result)
       setView('results')
       refreshUsage()
+      analytics.analysisCompleted()
 
       // Auto-save to the selected person
       if (activePerson && user) {

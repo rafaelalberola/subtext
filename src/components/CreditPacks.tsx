@@ -11,46 +11,30 @@ interface CreditPacksProps {
 
 export default function CreditPacks({ onBuy, disabled = false }: CreditPacksProps) {
   const { t } = useI18n()
+  const pack = CREDIT_PACKS[0]
 
   return (
     <div id="credits">
       <h3 className="text-subtitle text-text-primary mb-2">{t('credits_title')}</h3>
       <p className="text-caption text-text-secondary mb-4">{t('credits_subtitle')}</p>
 
-      <div className="grid grid-cols-2 gap-3">
-        {CREDIT_PACKS.map((pack) => {
-          const isBestValue = pack.id === 'credits_75'
-
-          return (
-            <button
-              key={pack.id}
-              onClick={() => onBuy(pack.priceId)}
-              disabled={disabled}
-              className={`relative rounded-card border p-4 text-left transition-all hover:shadow-md active:scale-[0.98] ${
-                isBestValue
-                  ? 'border-accent bg-accent/5'
-                  : 'border-border hover:border-text-tertiary'
-              }`}
-            >
-              {isBestValue && (
-                <span className="absolute -top-2.5 right-3 text-[10px] font-semibold text-white bg-accent px-2 py-0.5 rounded-pill">
-                  {t('best_value')}
-                </span>
-              )}
-
-              <div className="flex items-center gap-1.5 mb-2">
-                <Zap size={14} strokeWidth={2} className="text-warning" />
-                <span className="text-subtitle text-text-primary">{pack.label}</span>
-              </div>
-
-              <div className="text-title text-text-primary">
-                ${(pack.price / 100).toFixed(2)}
-              </div>
-
-            </button>
-          )
-        })}
-      </div>
+      <button
+        onClick={() => onBuy(pack.priceId)}
+        disabled={disabled}
+        className="w-full rounded-card border border-border p-4 text-left transition-all hover:shadow-md hover:border-text-tertiary active:scale-[0.98]"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap size={14} strokeWidth={2} className="text-warning" />
+            <span className="text-body text-text-primary font-medium">
+              {pack.label} {t('per_analysis')}
+            </span>
+          </div>
+          <span className="text-subtitle text-text-primary">
+            ${(pack.price / 100).toFixed(2)}
+          </span>
+        </div>
+      </button>
     </div>
   )
 }

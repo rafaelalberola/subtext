@@ -8,9 +8,10 @@ import { useI18n } from '@/lib/i18n'
 
 interface AuthPromptProps {
   onAuthSuccess?: () => void
+  redirectTo?: string
 }
 
-export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
+export default function AuthPrompt({ onAuthSuccess, redirectTo }: AuthPromptProps) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -24,7 +25,7 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/app`,
+        redirectTo: redirectTo || `${window.location.origin}/app`,
       },
     })
     if (error) {
@@ -42,7 +43,7 @@ export default function AuthPrompt({ onAuthSuccess }: AuthPromptProps) {
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/app`,
+        emailRedirectTo: redirectTo || `${window.location.origin}/app`,
         data: { locale },
       },
     })

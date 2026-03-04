@@ -132,10 +132,6 @@ export default function PlatformCard({ platform, animationDelay = 0 }: PlatformC
         {/* Incoming message */}
         <div className="flex justify-start">
           <div className="w-full ml-2 flex flex-col">
-            <span className={`text-[11px] font-medium ${config.speakerColor} mb-0.5`}>
-              {senderName}
-            </span>
-
             {/* Bubble */}
             <div className={`relative pt-2 pr-6 pb-2 pl-4 shadow-sm ${config.bubbleBg} ${config.bubbleRadius} ${config.bubbleTail}`}>
               <span className={`text-[14.5px] leading-[19px] ${config.textColor}`}>
@@ -168,11 +164,11 @@ export default function PlatformCard({ platform, animationDelay = 0 }: PlatformC
           </span>
           <div className="flex flex-col gap-2">
             {tones.map((tone, j) => (
-              <div key={j} className="flex flex-col gap-1 bg-white rounded-lg px-3 py-2.5 border border-border/60">
+              <div key={j} className="flex flex-col gap-1.5 bg-white rounded-lg px-3 py-2.5 border border-border/60">
                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${tone.color} self-start`}>
                   {tone.label}
                 </span>
-                <p className="text-[12px] leading-[1.4] text-text-secondary">
+                <p className="text-[12px] leading-[1.4] text-text-secondary pl-1">
                   {tone.msg}
                 </p>
               </div>

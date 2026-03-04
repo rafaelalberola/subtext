@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useI18n } from '@/lib/i18n'
 import { useSubscription } from '@/lib/subscription-context'
 import { analytics } from '@/lib/analytics'
@@ -26,6 +26,10 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(false)
 
   const currentPlan: PlanId = usage?.plan || 'free'
+
+  useEffect(() => {
+    analytics.viewContent('pricing')
+  }, [])
 
   const handleSelectPlan = async (plan: PlanId, interval: BillingInterval) => {
     if (plan === 'free') return

@@ -73,6 +73,7 @@ function ResponseCard({ response }: { response: SuggestedResponse }) {
 
       <p className="text-body text-text-primary">{response.message}</p>
 
+      <div className="border-t border-border -mx-4" />
       <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary transition-colors"

@@ -140,6 +140,14 @@ const config: Config = {
           '0%': { transform: 'scale(1)', opacity: '1' },
           '100%': { transform: 'scale(0)', opacity: '0' },
         },
+        'bounce-subtle': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(4px)' },
+        },
+        'glow-breathe': {
+          '0%, 100%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.06)', opacity: '0.75' },
+        },
       },
       animation: {
         'fade-in-up': 'fade-in-up 200ms ease-out forwards',
@@ -157,6 +165,8 @@ const config: Config = {
         unblur: 'unblur 800ms ease-out forwards',
         'bounce-in': 'bounce-in 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
         'bounce-out': 'bounce-out 200ms ease-in forwards',
+        'bounce-subtle': 'bounce-subtle 1.5s ease-in-out infinite',
+        'glow-breathe': 'glow-breathe 7s ease-in-out infinite',
       },
     },
   },

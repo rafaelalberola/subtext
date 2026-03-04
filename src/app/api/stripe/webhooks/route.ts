@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getStripe, planFromPriceId, creditsFromPriceId } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import type Stripe from 'stripe'
 
@@ -8,6 +8,16 @@ function createAdminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
+}
+
+async function getProductMetadata(stripe: Stripe, priceId: string) {
+  const price = await stripe.prices.retrieve(priceId, { expand: ['product'] })
+  const product = price.product as Stripe.Product
+  return {
+    plan: product.metadata.plan as string | undefined,
+    monthlyAnalyses: parseInt(product.metadata.monthly_analyses || '0'),
+    credits: parseInt(product.metadata.credits || '0'),
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -46,14 +56,19 @@ export async function POST(request: NextRequest) {
           session.subscription as string
         )
         const priceId = sub.items?.data?.[0]?.price?.id
-        const planInfo = priceId ? planFromPriceId(priceId) : null
+        if (!priceId) break
+
+        const meta = await getProductMetadata(stripe, priceId)
+        const interval = sub.items?.data?.[0]?.price?.recurring?.interval === 'year'
+          ? 'annual'
+          : 'monthly'
 
         await supabase.from('user_subscriptions').upsert({
           user_id: userId,
           stripe_customer_id: session.customer as string,
           stripe_subscription_id: sub.id,
-          plan: planInfo?.plan || 'plus',
-          billing_interval: planInfo?.interval || 'monthly',
+          plan: meta.plan || 'plus',
+          billing_interval: interval,
           status: 'active',
           current_period_start: sub.current_period_start
             ? new Date(sub.current_period_start * 1000).toISOString()
@@ -67,13 +82,15 @@ export async function POST(request: NextRequest) {
       } else if (session.mode === 'payment') {
         const lineItems = await stripe.checkout.sessions.listLineItems(session.id)
         const priceId = lineItems.data[0]?.price?.id
-        const credits = priceId ? creditsFromPriceId(priceId) : null
+        if (!priceId) break
 
-        if (credits) {
+        const meta = await getProductMetadata(stripe, priceId)
+
+        if (meta.plan === 'pack' && meta.credits > 0) {
           await supabase.from('credit_purchases').insert({
             user_id: userId,
             stripe_payment_intent_id: session.payment_intent as string,
-            credits_amount: credits,
+            credits_amount: meta.credits,
             price_paid: session.amount_total || 0,
           })
 
@@ -87,7 +104,7 @@ export async function POST(request: NextRequest) {
 
           await supabase.from('user_subscriptions').upsert({
             user_id: userId,
-            bonus_credits: currentCredits + credits,
+            bonus_credits: currentCredits + meta.credits,
             updated_at: new Date().toISOString(),
           })
         }
@@ -102,15 +119,20 @@ export async function POST(request: NextRequest) {
       if (!userId) break
 
       const priceId = sub.items?.data?.[0]?.price?.id
-      const planInfo = priceId ? planFromPriceId(priceId) : null
+      if (!priceId) break
+
+      const meta = await getProductMetadata(stripe, priceId)
+      const interval = sub.items?.data?.[0]?.price?.recurring?.interval === 'year'
+        ? 'annual'
+        : 'monthly'
 
       const status = sub.status === 'active' ? 'active'
         : sub.status === 'past_due' ? 'past_due'
         : 'canceled'
 
       await supabase.from('user_subscriptions').update({
-        plan: planInfo?.plan || 'plus',
-        billing_interval: planInfo?.interval || 'monthly',
+        plan: meta.plan || 'plus',
+        billing_interval: interval,
         status,
         current_period_start: sub.current_period_start
           ? new Date(sub.current_period_start * 1000).toISOString()

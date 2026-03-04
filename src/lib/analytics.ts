@@ -10,16 +10,30 @@ function trackEvent(eventName: string, params?: Record<string, unknown>) {
   }
 }
 
+function trackCustomEvent(eventName: string, params?: Record<string, unknown>) {
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('trackCustom', eventName, params)
+  }
+}
+
 export const analytics = {
+  // Standard Meta events
   pageView: () => trackEvent('PageView'),
   lead: () => trackEvent('Lead'),
   signUp: () => trackEvent('CompleteRegistration'),
-  firstAnalysis: () => trackEvent('ViewContent', { content_name: 'first_analysis' }),
-  viewPricing: () => trackEvent('ViewContent', { content_name: 'pricing' }),
+  viewContent: (contentName: string) =>
+    trackEvent('ViewContent', { content_name: contentName }),
   initiateCheckout: (plan: string, value: number) =>
     trackEvent('InitiateCheckout', { content_name: plan, value, currency: 'USD' }),
-  subscribe: (value: number) =>
-    trackEvent('Subscribe', { value, currency: 'USD' }),
   purchase: (value: number) =>
     trackEvent('Purchase', { value, currency: 'USD' }),
+
+  // Custom events
+  freeAnalysisStarted: () => trackCustomEvent('FreeAnalysisStarted'),
+  freeAnalysisCompleted: () => trackCustomEvent('FreeAnalysisCompleted'),
+  analysisCompleted: () => trackCustomEvent('AnalysisCompleted'),
+  postAnalysisSignupShown: () => trackCustomEvent('PostAnalysisSignupShown'),
+  postAnalysisSignupCompleted: () => trackCustomEvent('PostAnalysisSignupCompleted'),
+  postAnalysisSignupDismissed: () => trackCustomEvent('PostAnalysisSignupDismissed'),
+  upgradeModalViewed: () => trackCustomEvent('UpgradeModalViewed'),
 }

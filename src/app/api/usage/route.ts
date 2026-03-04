@@ -21,6 +21,7 @@ export async function GET() {
   const plan: PlanId = (sub?.plan as PlanId) || 'free'
   const bonusCredits = sub?.bonus_credits || 0
   const limit = PLAN_LIMITS[plan]
+  const isUnlimited = limit === -1
 
   // Count analyses this calendar month
   const now = new Date()
@@ -35,7 +36,7 @@ export async function GET() {
     .lt('created_at', monthEnd)
 
   const used = count || 0
-  const remaining = Math.max(0, limit + bonusCredits - used)
+  const remaining = isUnlimited ? -1 : Math.max(0, limit + bonusCredits - used)
 
   const usage: UsageInfo = {
     plan,

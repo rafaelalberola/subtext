@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/lib/i18n'
+import { analytics } from '@/lib/analytics'
 import BillingToggle from '@/components/BillingToggle'
 import PricingCards from '@/components/PricingCards'
 import type { BillingInterval } from '@/types/subscription'
@@ -11,6 +12,10 @@ export default function PricingSection() {
   const { t } = useI18n()
   const router = useRouter()
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly')
+
+  useEffect(() => {
+    analytics.viewContent('pricing')
+  }, [])
 
   const handleSelectPlan = () => {
     router.push('/app')

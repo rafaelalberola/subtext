@@ -2,7 +2,6 @@
 
 import { Check } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
-import Button from '@/components/ui/Button'
 import { PLAN_FEATURES, PLAN_PRICES } from '@/lib/usage'
 import type { PlanId, BillingInterval } from '@/types/subscription'
 import type { TranslationKey } from '@/lib/i18n'
@@ -45,7 +44,10 @@ export default function PricingCards({
       {plans.map((plan) => {
         const isCurrent = currentPlan === plan.id
         const prices = PLAN_PRICES[plan.id]
-        const price = billingInterval === 'annual' ? prices.annual : prices.monthly
+        // Always show per-month price; for annual, divide by 12
+        const displayPrice = billingInterval === 'annual'
+          ? Math.round(prices.annual / 12)
+          : prices.monthly
         const features = PLAN_FEATURES[plan.id]
 
         return (
@@ -69,17 +71,15 @@ export default function PricingCards({
               <div>
                 <h3 className="text-subtitle text-text-primary">{t(plan.nameKey)}</h3>
                 <div className="mt-1">
-                  {price === 0 ? (
+                  {displayPrice === 0 ? (
                     <span className="text-title text-text-primary">$0</span>
                   ) : (
                     <div className="flex items-baseline gap-1">
                       <span className="text-title text-text-primary">
-                        {billingInterval === 'annual'
-                          ? formatPrice(price)
-                          : formatPrice(price)}
+                        {formatPrice(displayPrice)}
                       </span>
                       <span className="text-caption text-text-tertiary">
-                        /{billingInterval === 'annual' ? t('billing_year') : t('billing_month')}
+                        /{t('billing_month')}
                       </span>
                     </div>
                   )}

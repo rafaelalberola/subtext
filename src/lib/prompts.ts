@@ -34,7 +34,7 @@ OUTPUT FORMAT (respond in valid JSON only, no markdown):
   ],
   "emotional_signals": [
     {
-      "signal": "short label (2-3 words max)",
+      "signal": "short label (2-3 words max, capitalize first letter)",
       "emoji": "single relevant emoji",
       "explanation": "one sentence explaining why you detected this"
     }

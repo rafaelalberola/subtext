@@ -34,7 +34,7 @@ export default function BillingToggle({ interval, onChange }: BillingToggleProps
         >
           {t('billing_annual')}
           <span className="text-[11px] font-semibold text-success bg-success/10 px-2 py-0.5 rounded-pill">
-            {t('billing_save_30')}
+            {t('billing_save_20')}
           </span>
         </button>
       </div>

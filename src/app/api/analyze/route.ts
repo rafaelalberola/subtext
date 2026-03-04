@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
     const plan: PlanId = (sub?.plan as PlanId) || 'free'
     const bonusCredits = sub?.bonus_credits || 0
     const limit = PLAN_LIMITS[plan]
+    const isUnlimited = limit === -1
 
     const now = new Date()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
@@ -67,13 +68,17 @@ export async function POST(request: NextRequest) {
       .lt('created_at', monthEnd)
 
     const used = count || 0
-    const remaining = limit + bonusCredits - used
 
-    if (remaining <= 0) {
-      return NextResponse.json(
-        { error: 'usage_limit_reached', plan, used, limit },
-        { status: 402 }
-      )
+    // Pro is unlimited; other plans check monthly limit + bonus credits
+    if (!isUnlimited) {
+      const remaining = limit + bonusCredits - used
+
+      if (remaining <= 0) {
+        return NextResponse.json(
+          { error: 'usage_limit_reached', plan, used, limit },
+          { status: 402 }
+        )
+      }
     }
 
     const analysis = await analyzeConversation({ text, screenshot, personContext })
@@ -81,8 +86,8 @@ export async function POST(request: NextRequest) {
     // Record usage event
     await supabase.from('analysis_events').insert({ user_id: user.id })
 
-    // If consuming bonus credits (used >= plan limit), decrement
-    if (used >= limit && bonusCredits > 0) {
+    // Pack credits consumed AFTER monthly allowance is exhausted
+    if (!isUnlimited && used >= limit && bonusCredits > 0) {
       const admin = createAdminClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!

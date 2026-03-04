@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useI18n } from '@/lib/i18n'
+import { analytics } from '@/lib/analytics'
 import BottomSheet from '@/components/ui/BottomSheet'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
@@ -13,6 +15,10 @@ interface UpgradePromptProps {
 
 export default function UpgradePrompt({ open, onClose }: UpgradePromptProps) {
   const { t } = useI18n()
+
+  useEffect(() => {
+    if (open) analytics.upgradeModalViewed()
+  }, [open])
 
   return (
     <BottomSheet open={open} onClose={onClose}>
