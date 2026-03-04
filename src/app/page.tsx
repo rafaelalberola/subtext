@@ -155,7 +155,7 @@ function LandingContent() {
 
   // Idle view: full landing page with input
   return (
-    <main className="min-h-screen bg-bg-primary">
+    <main className="min-h-screen bg-bg-primary overflow-x-hidden">
       <div className="max-w-2xl mx-auto px-section">
         {/* Header */}
         <header className="flex items-center justify-between pt-6 pb-4">
