@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, DragEvent } from 'react'
 import { Camera, X, Sparkles } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
+import type { TranslationKey } from '@/lib/i18n'
 
 const MAX_CHARS = 2000
 const TYPING_SPEED = 45
@@ -236,7 +237,7 @@ export default function FreeAnalysisInput({ onSubmit, isLoading, error }: FreeAn
         </p>
       ) : error ? (
         <p className="text-caption text-danger text-center">
-          {error.startsWith('free_analysis_error_') ? t(error) : error}
+          {error.startsWith('free_analysis_error_') ? t(error as TranslationKey) : error}
         </p>
       ) : null}
 
