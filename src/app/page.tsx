@@ -162,7 +162,7 @@ function LandingContent() {
           <span className="flex items-center gap-1.5 font-serif text-[22px] text-text-primary tracking-tight"><MessageCircle size={18} strokeWidth={1.5} className="relative -top-[2px]" />Reveald</span>
           <Link
             href="/app"
-            className="text-caption font-medium text-white bg-accent hover:bg-accent-hover px-4 py-2 rounded-full transition-colors"
+            className="text-caption font-medium text-white bg-accent hover:bg-accent-hover px-4 py-2 rounded-full transition-colors cursor-pointer"
           >
             {t('get_started')}
           </Link>
@@ -173,14 +173,17 @@ function LandingContent() {
           isLoading={false}
           error={error}
         />
-        <HowItWorks />
-        <UseCases />
-        <TrustSignals />
-        <PricingSection />
-        <ClosingCTA />
+        {/* Isolated stacking context: prevents hero glow from affecting scroll compositing */}
+        <div className="relative z-[1]" style={{ contain: 'paint' }}>
+          <HowItWorks />
+          <UseCases />
+          <TrustSignals />
+          <PricingSection />
+          <ClosingCTA />
+        </div>
 
         {/* Footer */}
-        <footer className="pb-8 flex flex-col items-center gap-2">
+        <footer className="pb-8 flex flex-col items-center gap-2 relative z-[1]">
           <div className="flex items-center gap-3 text-caption text-text-tertiary">
             <Link href="/privacy" className="underline hover:text-text-secondary transition-colors">
               {t('privacy_policy_title')}

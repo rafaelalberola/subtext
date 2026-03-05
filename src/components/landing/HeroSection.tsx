@@ -26,15 +26,15 @@ export default function HeroSection({ onSubmit, isLoading, error }: HeroSectionP
         <div className="absolute -top-20 -bottom-40 left-1/2 w-screen overflow-hidden pointer-events-none opacity-40 md:opacity-60" style={{ transform: 'translateX(-50%)', maskImage: 'linear-gradient(to bottom, black 40%, transparent 80%)', WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 80%)' }}>
           <div className="absolute -inset-[30%] animate-glow-breathe" style={{ willChange: 'transform' }}>
             {/* Amber — top right */}
-            <div className="absolute top-[5%] right-[5%] w-[60%] h-[50%] rounded-full blur-[140px]" style={{ backgroundColor: 'rgba(255,160,40,0.18)' }} />
+            <div className="absolute top-[5%] right-[5%] w-[60%] h-[50%] rounded-full blur-[60px] sm:blur-[140px]" style={{ backgroundColor: 'rgba(255,160,40,0.18)' }} />
             {/* Rose — upper center-right */}
-            <div className="absolute top-[12%] right-[15%] w-[50%] h-[40%] rounded-full blur-[130px]" style={{ backgroundColor: 'rgba(255,77,141,0.14)' }} />
+            <div className="absolute top-[12%] right-[15%] w-[50%] h-[40%] rounded-full blur-[55px] sm:blur-[130px]" style={{ backgroundColor: 'rgba(255,77,141,0.14)' }} />
             {/* Sky blue — bottom left */}
-            <div className="absolute bottom-[8%] left-[5%] w-[60%] h-[50%] rounded-full blur-[140px]" style={{ backgroundColor: 'rgba(0,191,255,0.16)' }} />
+            <div className="absolute bottom-[8%] left-[5%] w-[60%] h-[50%] rounded-full blur-[60px] sm:blur-[140px]" style={{ backgroundColor: 'rgba(0,191,255,0.16)' }} />
             {/* Violet — mid left */}
-            <div className="absolute top-[28%] left-[5%] w-[45%] h-[45%] rounded-full blur-[120px]" style={{ backgroundColor: 'rgba(155,89,182,0.12)' }} />
+            <div className="absolute top-[28%] left-[5%] w-[45%] h-[45%] rounded-full blur-[50px] sm:blur-[120px]" style={{ backgroundColor: 'rgba(155,89,182,0.12)' }} />
             {/* Mint — bottom center */}
-            <div className="absolute bottom-[12%] left-[25%] w-[50%] h-[40%] rounded-full blur-[130px]" style={{ backgroundColor: 'rgba(0,206,209,0.14)' }} />
+            <div className="absolute bottom-[12%] left-[25%] w-[50%] h-[40%] rounded-full blur-[55px] sm:blur-[130px]" style={{ backgroundColor: 'rgba(0,206,209,0.14)' }} />
           </div>
         </div>
 
