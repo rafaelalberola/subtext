@@ -53,6 +53,7 @@ export default function AppPage() {
   useEffect(() => {
     if (searchParams.get('payment') === 'success') {
       analytics.purchase(0)
+      refreshUsage()
       // Clean URL without reloading
       window.history.replaceState({}, '', '/app')
     }

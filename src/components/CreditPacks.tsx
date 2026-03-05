@@ -31,7 +31,7 @@ export default function CreditPacks({ onBuy, disabled = false }: CreditPacksProp
             </span>
           </div>
           <span className="text-subtitle text-text-primary">
-            ${(pack.price / 100).toFixed(2)}
+            {(pack.price / 100).toFixed(2)}€
           </span>
         </div>
       </button>

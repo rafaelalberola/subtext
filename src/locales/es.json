@@ -160,7 +160,7 @@
   "subtext_label": "Reveald",
   "reveal_question": "¿Qué quiere decir?",
   "online": "en línea",
-  "scroll_discover": "Descubre más",
+  "scroll_discover": "Descubre ejemplos",
   "confirm_delete_analysis_title": "¿Eliminar análisis?",
   "confirm_delete_analysis_desc": "Este análisis se eliminará. No se puede deshacer.",
   "confirm_delete_person_title": "¿Eliminar persona?",
@@ -262,5 +262,7 @@
   "free_analysis_error_validation": "Introduce entre 10 y 2.000 caracteres.",
   "free_analysis_error_image_too_large": "La imagen debe pesar menos de 5MB.",
   "free_analysis_claimed": "Tu lectura gratis se ha guardado en tu cuenta.",
-  "create_account": "Crear cuenta"
+  "create_account": "Crear cuenta",
+  "settings_buy_credits": "Comprar 10 créditos",
+  "settings_credits_price": "4,99€"
 }

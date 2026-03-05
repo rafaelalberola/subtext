@@ -27,7 +27,7 @@ const plans: Array<{
 ]
 
 function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}`
+  return `${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}€`
 }
 
 export default function PricingCards({
@@ -72,7 +72,7 @@ export default function PricingCards({
                 <h3 className="text-subtitle text-text-primary">{t(plan.nameKey)}</h3>
                 <div className="mt-1">
                   {displayPrice === 0 ? (
-                    <span className="text-title text-text-primary">$0</span>
+                    <span className="text-title text-text-primary">0€</span>
                   ) : (
                     <div className="flex items-baseline gap-1">
                       <span className="text-title text-text-primary">
@@ -116,7 +116,7 @@ export default function PricingCards({
                   plan.highlighted
                     ? 'bg-accent text-white hover:bg-accent-hover'
                     : 'bg-bg-secondary text-text-primary hover:bg-border'
-                } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 onClick={() => onSelectPlan(plan.id, billingInterval)}
                 disabled={disabled}
               >

@@ -21,7 +21,7 @@ export const CREDIT_PACKS: CreditPack[] = [
     price: 499,
     label: '10',
     priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_10_PRICE_ID || '',
-    perAnalysis: '$0.50',
+    perAnalysis: '0,50€',
   },
 ]
 

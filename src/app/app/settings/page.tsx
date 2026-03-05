@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { LogOut, LogIn, Trash2, Shield, CreditCard, ArrowRight, Sparkles } from 'lucide-react'
+import { LogOut, LogIn, Trash2, Shield, CreditCard, Sparkles, Zap } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useI18n } from '@/lib/i18n'
 import { useSubscription } from '@/lib/subscription-context'
@@ -13,6 +13,8 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import PageHeader from '@/components/ui/PageHeader'
 import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
+import { CREDIT_PACKS } from '@/lib/usage'
+import { analytics } from '@/lib/analytics'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -20,8 +22,9 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [loading, setLoading] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [creditsLoading, setCreditsLoading] = useState(false)
   const { t } = useI18n()
-  const { usage } = useSubscription()
+  const { usage, refreshUsage } = useSubscription()
 
   const supabase = createClient()
 
@@ -52,6 +55,25 @@ export default function SettingsPage() {
     setShowDeleteConfirm(false)
     window.location.href = '/'
     await supabase.auth.signOut()
+  }
+
+  const handleBuyCredits = async () => {
+    const pack = CREDIT_PACKS[0]
+    if (!pack.priceId) return
+    setCreditsLoading(true)
+    analytics.initiateCheckout('credits', 0)
+
+    try {
+      const res = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId: pack.priceId, mode: 'payment' }),
+      })
+      const { url } = await res.json()
+      if (url) window.location.href = url
+    } catch {
+      setCreditsLoading(false)
+    }
   }
 
   const handleManageSubscription = async () => {
@@ -96,12 +118,31 @@ export default function SettingsPage() {
             </div>
 
             {usage && usage.plan !== 'pro' && (
-              <Link href="/app/pricing">
-                <Button variant="primary" fullWidth>
-                  <Sparkles size={14} strokeWidth={1.5} />
-                  {usage.plan === 'plus' ? t('upgrade_to_pro') : t('upgrade')}
-                </Button>
-              </Link>
+              <div className="flex flex-col gap-2">
+                <Link href="/app/pricing">
+                  <Button variant="primary" fullWidth>
+                    <Sparkles size={14} strokeWidth={1.5} />
+                    {usage.plan === 'plus' ? t('upgrade_to_pro') : t('upgrade')}
+                  </Button>
+                </Link>
+                <button
+                  onClick={handleBuyCredits}
+                  disabled={creditsLoading}
+                  className="w-full rounded-card border border-border p-3 text-left transition-all hover:shadow-md hover:border-text-tertiary active:scale-[0.98] disabled:opacity-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Zap size={14} strokeWidth={2} className="text-warning" />
+                      <span className="text-body text-text-primary font-medium">
+                        {t('settings_buy_credits')}
+                      </span>
+                    </div>
+                    <span className="text-body text-text-secondary">
+                      {t('settings_credits_price')}
+                    </span>
+                  </div>
+                </button>
+              </div>
             )}
           </div>
 

@@ -169,7 +169,7 @@
   "subtext_label": "Reveald",
   "reveal_question": "What does it mean?",
   "online": "online",
-  "scroll_discover": "Discover more",
+  "scroll_discover": "Discover examples",
 
   "confirm_delete_analysis_title": "Delete analysis?",
   "confirm_delete_analysis_desc": "This analysis will be deleted. This cannot be undone.",
@@ -278,5 +278,7 @@
   "free_analysis_error_validation": "Please enter between 10 and 2,000 characters.",
   "free_analysis_error_image_too_large": "Image must be under 5MB.",
   "free_analysis_claimed": "Your free reading has been saved to your account!",
-  "create_account": "Create account"
+  "create_account": "Create account",
+  "settings_buy_credits": "Buy 10 credits",
+  "settings_credits_price": "4.99€"
 }
